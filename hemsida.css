@@ -278,39 +278,56 @@ body.startpage .nordic--body-wrapper {
   box-sizing: border-box;
 }
 
-.spinroll-about-icon {
-  width: 58px;
-  height: 58px;
+
+/* SPINROLL - IKONER */
+
+.spinroll-about .spinroll-about-icon {
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px;
+  min-height: 58px;
+  max-width: 58px;
+
   margin-bottom: 18px;
   border-radius: 14px;
   background: #ffffff;
+
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
-.spinroll-about-icon svg {
-  width: 30px;
-  height: 30px;
-  display: block;
+/* TVINGA SVG TILL RÄTT STORLEK */
+
+.spinroll-about .spinroll-about-icon svg {
+  display: block !important;
+
+  width: 30px !important;
+  height: 30px !important;
+
+  min-width: 30px !important;
+  min-height: 30px !important;
+  max-width: 30px !important;
+  max-height: 30px !important;
+
+  flex: 0 0 30px;
 }
 
-.spinroll-about-icon svg rect,
-.spinroll-about-icon svg circle,
-.spinroll-about-icon svg path {
+/* IKONERNAS FÄRGER */
+
+.spinroll-about .spinroll-about-icon svg rect {
   stroke: #a91e3d;
-  fill: none;
   stroke-width: 3.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  fill: none;
 }
 
-.spinroll-about-icon svg circle {
+.spinroll-about .spinroll-about-icon svg circle {
   fill: #a91e3d;
   stroke: none;
 }
 
-.spinroll-about-icon svg path {
+.spinroll-about .spinroll-about-icon svg path {
   fill: #a91e3d;
   stroke: none;
 }
