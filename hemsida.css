@@ -74,6 +74,13 @@
     transform: translateX(-50%);
     padding-bottom: 0 !important;
 }
+.produkt-3d {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
 
 .tws-container--tws-custom-html.background {
     margin-top: 0;
