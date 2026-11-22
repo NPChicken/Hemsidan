@@ -76,6 +76,31 @@
 }
 
 
+.produkt-sektion {
+    width: 100%;
+    min-height: 700px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#spinroll-modell {
+    display: block;
+    width: min(90vw, 900px);
+    height: 600px;
+    background: transparent;
+}
+
+@media (max-width: 768px) {
+    .produkt-sektion {
+        min-height: 450px;
+    }
+
+    #spinroll-modell {
+        height: 400px;
+    }
+}
+
 .tws-container--tws-custom-html.background {
     margin-top: 0;
 }
