@@ -128,7 +128,7 @@ body.startpage .nordic--body-wrapper {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 22px;
   width: 100%;
   font-family: Arial, sans-serif;
@@ -217,6 +217,33 @@ body.startpage .nordic--body-wrapper {
   line-height: 1.6;
   text-align: left;
 }
+
+
+/* PERSONKORT - SAMMA STORLEK */
+
+.spinroll-person {
+  display: flex;
+  flex-direction: column;
+}
+
+.spinroll-person-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+/* ROLLER OCH NAMN */
+.spinroll-person-content h2 {
+  min-height: 52px;
+}
+
+/* KNAPPAR PÅ SAMMA HÖJD */
+.spinroll-details {
+  margin-top: auto;
+  width: 100%;
+}
+
 
 /* OM OSS - VAD OCH VARFÖR */
 
