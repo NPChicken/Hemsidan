@@ -74,12 +74,31 @@
     transform: translateX(-50%);
     padding-bottom: 0 !important;
 }
-.produkt-3d {
+
+
+.produkt-sektion {
     width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 40px 20px;
-    box-sizing: border-box;
+    min-height: 700px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#spinroll-modell {
+    display: block;
+    width: min(90vw, 900px);
+    height: 600px;
+    background: transparent;
+}
+
+@media (max-width: 768px) {
+    .produkt-sektion {
+        min-height: 450px;
+    }
+
+    #spinroll-modell {
+        height: 400px;
+    }
 }
 
 .tws-container--tws-custom-html.background {
