@@ -1,0 +1,219 @@
+.custom-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+@media (min-width: 992px) {
+
+	.custom-flex {
+    flex-direction: row;
+  }
+}
+.bakgrund {
+    background-image: url("https://cdn.abicart.com/shop/ws60/166760/files/Bilder/banner%20spinroll%20website.png?_t=1795357856");
+    background-size: contain;
+    background-position: center top;
+    background-repeat: no-repeat;
+
+    width: 100vw;
+    height: 100vh;
+
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: -1;
+}
+.nordic--header {
+    display: none;
+}
+.nordic--footer {
+    background-color: black;
+    position: relative;
+    z-index: 2;
+    margin-top: 0;
+  
+}
+
+.draperi {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+		z-index: 1;
+
+    left: 50%;
+    transform: translateX(-50%);
+
+    background:
+  	 		radial-gradient(
+        ellipse 70% 55% at 50% 0%,
+        transparent 70%,
+        #580a17 100%
+        
+    ), linear-gradient(
+        to bottom,
+        transparent 35%,
+        #580a17 55%,
+        #580a17 100%
+    );
+}
+
+.nordic--main-wrapper {
+    background: transparent !important; 
+    box-shadow: none !important;
+}
+
+.rod-fortsattning {
+    background-color: #580a17;
+
+    width: 100vw;
+    min-height: 600px;
+
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-bottom: 0 !important;
+}
+
+.tws-container--tws-custom-html.background {
+    margin-top: 0;
+}
+.slot--breadcrumbs {
+ 		margin-bottom: 0 
+}
+.nordic--main-wrapper {
+    padding-bottom: 0 !important;
+}
+
+
+/* STARTSEKTION */
+.spinroll-start {
+  position: relative;
+  width: 100%;
+}
+
+/* LOGGAN */
+.spinroll-logo {
+  position: absolute;
+  top: 18vh;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 95%;
+  max-width: 750px;
+
+  z-index: 2;
+  text-align: center;
+  pointer-events: none;
+}
+
+.spinroll-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* DRAPERIET LIGGER OVANPÅ LOGGAN */
+.spinroll-start .draperi {
+  z-index: 1;
+}
+
+body.startpage .nordic--body-wrapper {
+    padding-bottom: 0 !important;
+}
+
+
+/* SPINROLL TEAM */
+.spinroll-team {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 22px;
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+
+/* PERSONKORT */
+.spinroll-person {
+  width: 230px;
+  max-width: 100%;
+  background: #ffffff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 5px 18px rgba(88,10,23,0.12);
+  text-align: center;
+}
+
+.spinroll-person > img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  display: block;
+}
+
+.spinroll-person-content {
+  padding: 20px 12px 22px;
+}
+
+.spinroll-person h2 {
+  color: #580a17;
+  font-size: 21px;
+  margin: 0 0 12px;
+  font-weight: 700;
+}
+
+.spinroll-role {
+  display: inline-block;
+  background: #f2c99e;
+  color: #580a17;
+  padding: 7px 13px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.spinroll-secondary {
+  color: #a91e3d;
+  font-size: 13px;
+  margin: 9px 0 0;
+  font-weight: 600;
+}
+
+/* UTFÄLLBAR PRESENTATION */
+.spinroll-details {
+  margin-top: 18px;
+  border-radius: 12px;
+  background: #f2c99e;
+  overflow: hidden;
+}
+
+.spinroll-details summary {
+  cursor: pointer;
+  padding: 12px 8px;
+  color: #580a17;
+  font-size: 13px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.spinroll-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.spinroll-details summary::after {
+  content: " +";
+  font-size: 17px;
+}
+
+.spinroll-details[open] summary::after {
+  content: " −";
+}
+
+.spinroll-bio {
+  padding: 4px 14px 17px;
+  color: #580a17;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: left;
+}
