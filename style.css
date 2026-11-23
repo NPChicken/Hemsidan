@@ -15,6 +15,7 @@ body {
 }
 
 /* Banner */
+
 .hero {
     position: relative;
     width: 100%;
@@ -22,13 +23,9 @@ body {
 }
 
 .hero-bild {
+    display: block;
     width: 100%;
-    aspect-ratio: 16 / 9;
-
-    background-image: url("pictures/banner.png");
-    background-size: 100% 100%;
-    background-position: center;
-    background-repeat: no-repeat;
+    height: auto;
 }
 
 /* Vinröd övergång */
