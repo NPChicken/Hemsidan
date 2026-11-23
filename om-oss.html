@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="sv">
-
+<link rel="stylesheet" href="style-om-oss.css">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,17 +11,14 @@
 
 <body>
 
-    <!-- Menyknapp -->
-    <button
-        class="menyknapp"
-        id="menyknapp"
+    <!-- MENY -->
+    <button class="menyknapp" id="menyknapp"
         aria-label="Öppna meny"
         aria-expanded="false"
         aria-controls="sidomeny">
         ☰
     </button>
 
-    <!-- Sidomeny -->
     <nav class="sidomeny" id="sidomeny" aria-label="Huvudmeny">
         <a href="index.html">Hem</a>
         <a href="exile.html">Exile</a>
@@ -29,44 +26,209 @@
         <a href="kontakt.html">Kontakt</a>
     </nav>
 
-    <!-- Om oss -->
-    <section class="om-oss">
+    <main>
 
-        <div class="om-oss-kort">
+        <!-- 1. INTRODUKTION -->
+        <section class="om-oss">
 
-            <div class="overrubrik">
-                DET ÄR VI SOM ÄR
+            <div class="om-oss-kort">
+
+                <div class="overrubrik">
+                    DET ÄR VI SOM ÄR
+                </div>
+
+                <h1>SPINROLL<span>.</span></h1>
+
+                <h2>Mer än bara ett spel.</h2>
+
+                <p>
+                    Vi är ett ungt team med en gemensam ambition –
+                    att skapa spel som för människor närmare varandra.
+                </p>
+
+                <a href="#var-historia" class="las-mer">
+                    Lär känna oss ↓
+                </a>
+
             </div>
 
-            <h1>
-                SPINROLL<span>.</span>
-            </h1>
+            <div class="slogan">
+                KREATIVITET · GEMENSKAP · SPELGLÄDJE
+            </div>
 
-            <h2>Mer än bara ett spel.</h2>
+        </section>
 
-            <p>
-                Vi är ett ungt team med en gemensam ambition –
-                att skapa spel som för människor närmare varandra.
-            </p>
 
-            <a href="#var-historia" class="las-mer">
-                Lär känna oss ↓
-            </a>
+        <!-- 2. TEAMET -->
+        <section id="var-historia" class="team-sektion">
 
-        </div>
+            <div class="spinroll-team">
 
-        <div class="slogan">
-            KREATIVITET · GEMENSKAP · SPELGLÄDJE
-        </div>
+                <!-- JOHN -->
+                <div class="spinroll-person">
+                    <img
+                        src="https://cdn.abicart.com/shop/ws60/166760/files/Person%20Bilder/John.JPG"
+                        alt="John Svartström">
 
-    </section>
+                    <div class="spinroll-person-content">
+                        <h2>John Svartström</h2>
+                        <span class="spinroll-role">VD</span>
+                        <p class="spinroll-secondary">
+                            Ledande speldesigner
+                        </p>
 
-    <!-- Plats för framtida innehåll -->
-    <section id="var-historia" class="var-historia">
-        <h2>Vår historia</h2>
-    </section>
+                        <details class="spinroll-details">
+                            <summary>Lär känna John</summary>
+                            <div class="spinroll-bio">
+                                Här kommer Johns personliga presentation.
+                            </div>
+                        </details>
+                    </div>
+                </div>
 
-    <!-- JavaScript för menyn -->
+                <!-- IDA -->
+                <div class="spinroll-person">
+                    <img
+                        src="https://cdn.abicart.com/shop/ws60/166760/files/Person%20Bilder/Ida.JPG"
+                        alt="Ida Tengnér">
+
+                    <div class="spinroll-person-content">
+                        <h2>Ida Tengnér</h2>
+                        <span class="spinroll-role">
+                            Produktansvarig
+                        </span>
+                        <p class="spinroll-secondary">
+                            Grafisk designer
+                        </p>
+
+                        <details class="spinroll-details">
+                            <summary>Lär känna Ida</summary>
+                            <div class="spinroll-bio">
+                                Här kommer Idas personliga presentation.
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+                <!-- WICTOR -->
+                <div class="spinroll-person">
+                    <img
+                        src="https://cdn.abicart.com/shop/ws60/166760/files/Person%20Bilder/Wictor.JPG"
+                        alt="Wictor Fredriksson">
+
+                    <div class="spinroll-person-content">
+                        <h2>Wictor Fredriksson</h2>
+                        <span class="spinroll-role">Finanschef</span>
+
+                        <details class="spinroll-details">
+                            <summary>Lär känna Wictor</summary>
+                            <div class="spinroll-bio">
+                                Här kommer Wictors personliga presentation.
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+                <!-- JULIUS -->
+                <div class="spinroll-person">
+                    <img
+                        src="https://cdn.abicart.com/shop/ws60/166760/files/Person%20Bilder/Julius.JPG"
+                        alt="Julius Saers">
+
+                    <div class="spinroll-person-content">
+                        <h2>Julius Saers</h2>
+                        <span class="spinroll-role">Marknadschef</span>
+
+                        <details class="spinroll-details">
+                            <summary>Lär känna Julius</summary>
+                            <div class="spinroll-bio">
+                                Här kommer Julius personliga presentation.
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- 3. VAD VI GÖR OCH VARFÖR -->
+        <section class="spinroll-about">
+
+            <div class="spinroll-about-header">
+                <h2>Mer än bara ett spel.</h2>
+
+                <div class="spinroll-about-line"></div>
+
+                <p>
+                    Vi vill skapa upplevelser som för människor samman.
+                </p>
+            </div>
+
+            <div class="spinroll-about-grid">
+
+                <!-- VAD VI GÖR -->
+                <div class="spinroll-about-card">
+
+                    <div class="spinroll-about-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#a91e3d"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true">
+
+                            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+                            <circle cx="8" cy="8" r="1" fill="#a91e3d" stroke="none"></circle>
+                            <circle cx="16" cy="8" r="1" fill="#a91e3d" stroke="none"></circle>
+                            <circle cx="12" cy="12" r="1" fill="#a91e3d" stroke="none"></circle>
+                            <circle cx="8" cy="16" r="1" fill="#a91e3d" stroke="none"></circle>
+                            <circle cx="16" cy="16" r="1" fill="#a91e3d" stroke="none"></circle>
+                        </svg>
+                    </div>
+
+                    <h3>Vad vi gör</h3>
+                    <p>
+                        Här skriver vi senare om vad SpinRoll gör
+                        och vilka spel vi utvecklar.
+                    </p>
+
+                </div>
+
+                <!-- VARFÖR VI GÖR DET -->
+                <div class="spinroll-about-card">
+
+                    <div class="spinroll-about-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#a91e3d"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true">
+
+                            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"></path>
+                        </svg>
+                    </div>
+
+                    <h3>Varför vi gör det</h3>
+                    <p>
+                        Här skriver vi senare om varför vi startade
+                        SpinRoll och vad som driver oss.
+                    </p>
+
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- MENYNS JAVASCRIPT -->
     <script>
         const menyknapp = document.querySelector("#menyknapp");
         const sidomeny = document.querySelector("#sidomeny");

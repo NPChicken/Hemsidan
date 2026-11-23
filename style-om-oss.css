@@ -1,0 +1,482 @@
+
+
+/* ========================================
+   GRUNDINSTÄLLNINGAR
+======================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f2c99e;
+}
+
+
+/* ========================================
+   HAMBURGERMENY
+======================================== */
+
+.menyknapp {
+    position: fixed;
+    top: 25px;
+    left: 25px;
+    z-index: 1001;
+
+    background: transparent;
+    border: none;
+    color: #580a17;
+    font-size: 36px;
+    cursor: pointer;
+}
+
+.sidomeny {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    background-color: #580a17;
+    z-index: 1000;
+
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding: 110px 35px 35px;
+
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.sidomeny.oppen {
+    transform: translateX(0);
+}
+
+.sidomeny a {
+    color: #f2c99e;
+    text-decoration: none;
+    font-size: 24px;
+}
+
+.sidomeny a:hover {
+    text-decoration: underline;
+}
+
+.menyknapp:has(+ .sidomeny.oppen) {
+    color: #f2c99e;
+}
+
+
+/* ========================================
+   INTRODUKTION – DET ÄR VI SOM ÄR SPINROLL
+======================================== */
+
+.om-oss {
+    background-color: #f2c99e;
+    padding: 55px 20px;
+    border-radius: 18px;
+}
+
+.om-oss-kort {
+    max-width: 850px;
+    margin: 0 auto;
+    background-color: #580a17;
+    color: #ffffff;
+    padding: 55px 45px;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(88, 10, 23, 0.15);
+}
+
+.overrubrik {
+    color: #f2c99e;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+}
+
+.om-oss-kort h1 {
+    font-size: clamp(48px, 9vw, 90px);
+    line-height: 1;
+    color: #ffffff;
+    font-weight: 900;
+    margin: 0 0 18px;
+}
+
+.om-oss-kort h1 span {
+    color: #f2c99e;
+}
+
+.om-oss-kort h2 {
+    color: #f2c99e;
+    font-size: clamp(24px, 4vw, 36px);
+    margin: 0 0 20px;
+}
+
+.om-oss-kort p {
+    color: #ffffff;
+    font-size: 17px;
+    line-height: 1.8;
+    max-width: 550px;
+    margin: 0 0 30px;
+}
+
+.las-mer {
+    display: inline-block;
+    background-color: #a91e3d;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 15px 27px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.las-mer:hover {
+    background-color: #c52b4e;
+}
+
+.slogan {
+    text-align: center;
+    color: #580a17;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    margin-top: 30px;
+}
+
+
+/* ========================================
+   TEAMSEKTIONENS PLACERING
+======================================== */
+
+.team-sektion {
+    padding: 35px 20px 55px;
+    scroll-margin-top: 40px;
+}
+
+
+/* ========================================
+   MOBILANPASSNING FÖR INTRODUKTIONEN
+======================================== */
+
+@media (max-width: 650px) {
+
+    .om-oss {
+        padding: 75px 15px 35px;
+    }
+
+    .om-oss-kort {
+        padding: 45px 25px;
+    }
+
+    .overrubrik {
+        letter-spacing: 2px;
+    }
+
+    .slogan {
+        letter-spacing: 1.5px;
+        line-height: 1.8;
+    }
+
+    .team-sektion {
+        padding: 25px 15px 40px;
+    }
+}
+
+/* ========================================
+   SPINROLL TEAM
+======================================== */
+
+.spinroll-team {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 22px;
+    width: 100%;
+    font-family: Arial, sans-serif;
+}
+
+
+/* PERSONKORT */
+
+.spinroll-person {
+    display: flex;
+    flex-direction: column;
+
+    width: 230px;
+    max-width: 100%;
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 5px 18px rgba(88, 10, 23, 0.12);
+    text-align: center;
+}
+
+.spinroll-person > img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    display: block;
+}
+
+
+/* PERSONKORTENS INNEHÅLL */
+
+.spinroll-person-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+
+    padding: 20px 12px 22px;
+}
+
+.spinroll-person h2 {
+    color: #580a17;
+    font-size: 21px;
+    margin: 0 0 12px;
+    font-weight: 700;
+}
+
+.spinroll-person-content h2 {
+    min-height: 52px;
+}
+
+
+/* ROLLER */
+
+.spinroll-role {
+    display: inline-block;
+    background: #f2c99e;
+    color: #580a17;
+    padding: 7px 13px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.spinroll-secondary {
+    color: #a91e3d;
+    font-size: 13px;
+    margin: 9px 0 0;
+    font-weight: 600;
+}
+
+
+/* UTFÄLLBAR PRESENTATION */
+
+.spinroll-details {
+    margin-top: auto;
+    width: 100%;
+    border-radius: 12px;
+    background: #f2c99e;
+    overflow: hidden;
+}
+
+.spinroll-details summary {
+    cursor: pointer;
+    padding: 12px 8px;
+    color: #580a17;
+    font-size: 13px;
+    font-weight: 700;
+    list-style: none;
+}
+
+.spinroll-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.spinroll-details summary::after {
+    content: " +";
+    font-size: 17px;
+}
+
+.spinroll-details[open] summary::after {
+    content: " −";
+}
+
+.spinroll-bio {
+    padding: 4px 14px 17px;
+    color: #580a17;
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: left;
+}
+
+
+/* ========================================
+   OM OSS – VAD OCH VARFÖR
+======================================== */
+
+.spinroll-about {
+    background: #f2c99e;
+    padding: 45px 30px;
+    border-radius: 22px;
+    max-width: 1100px;
+    margin: 50px auto;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+
+/* RUBRIKRUTAN */
+
+.spinroll-about-header {
+    background: #580a17;
+    border-radius: 16px;
+    padding: 35px 25px;
+    text-align: center;
+    margin-bottom: 22px;
+}
+
+.spinroll-about-header h2 {
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 15px;
+}
+
+.spinroll-about-line {
+    background: #a91e3d;
+    width: 65px;
+    height: 4px;
+    border-radius: 10px;
+    margin: 0 auto 15px;
+}
+
+.spinroll-about-header p {
+    color: #f2c99e;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+
+/* INFORMATIONSKORTEN */
+
+.spinroll-about-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.spinroll-about-card {
+    background: #580a17;
+    color: #ffffff;
+    padding: 28px;
+    border-radius: 16px;
+    box-sizing: border-box;
+}
+
+
+/* IKONERNAS BEHÅLLARE */
+
+.spinroll-about .spinroll-about-icon {
+    width: 58px !important;
+    height: 58px !important;
+
+    min-width: 58px;
+    min-height: 58px;
+    max-width: 58px;
+
+    margin-bottom: 18px;
+    border-radius: 14px;
+    background: #ffffff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+
+/* SVG-IKONERNAS STORLEK */
+
+.spinroll-about .spinroll-about-icon svg {
+    display: block !important;
+
+    width: 30px !important;
+    height: 30px !important;
+
+    min-width: 30px !important;
+    min-height: 30px !important;
+    max-width: 30px !important;
+    max-height: 30px !important;
+
+    flex: 0 0 30px;
+}
+
+
+/* IKONERNAS FÄRGER */
+
+.spinroll-about .spinroll-about-icon svg rect {
+    stroke: #a91e3d;
+    stroke-width: 3.5;
+    fill: none;
+}
+
+.spinroll-about .spinroll-about-icon svg circle {
+    fill: #a91e3d;
+    stroke: none;
+}
+
+.spinroll-about .spinroll-about-icon svg path {
+    fill: #a91e3d;
+    stroke: none;
+}
+
+
+/* INFORMATIONSKORTENS TEXT */
+
+.spinroll-about-card h3 {
+    color: #ffffff;
+    font-size: 23px;
+    margin: 0 0 15px;
+}
+
+.spinroll-about-card p {
+    color: #ffffff;
+    font-size: 15px;
+    line-height: 1.7;
+    margin: 0;
+}
+
+
+/* ========================================
+   MOBILANPASSNING
+======================================== */
+
+@media (max-width: 650px) {
+
+    .spinroll-about {
+        padding: 22px 15px;
+        margin: 30px auto;
+    }
+
+    .spinroll-about-header {
+        padding: 28px 16px;
+    }
+
+    .spinroll-about-header h2 {
+        font-size: 26px;
+    }
+
+    .spinroll-about-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .spinroll-about-card {
+        padding: 23px;
+    }
+}

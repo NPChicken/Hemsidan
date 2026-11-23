@@ -41,7 +41,7 @@
         <model-viewer
             id="spinroll-modell"
             src="https://spinroll.se/box.glb"
-            camera-orbit="0deg 75deg auto"
+            camera-orbit="0deg 75deg 120%"
             camera-target="auto auto auto"
             orientation="160deg 90deg 0deg"
             shadow-intensity="0">
@@ -57,28 +57,41 @@
 
     <!-- Scrollstyrd rotation -->
     <script>
-        const modell = document.querySelector("#spinroll-modell");
 
-        function roteraModell() {
-            const ruta = modell.getBoundingClientRect();
+const modell = document.querySelector("#spinroll-modell");
 
-            const modellMitt = ruta.top + ruta.height / 2;
-            const skarmMitt = window.innerHeight / 2;
+function roteraModell() {
+    const ruta = modell.getBoundingClientRect();
 
-            const scrollPosition = (skarmMitt - modellMitt) / window.innerHeight;
+    const modellMitt = ruta.top + ruta.height / 2;
+    const skarmMitt = window.innerHeight / 2;
 
-            const rotation = 160 + scrollPosition * 60;
+    const scrollPosition =
+        (skarmMitt - modellMitt) / window.innerHeight;
 
-            modell.setAttribute(
-                "orientation",
-                `${rotation}deg 90deg 0deg`
-            );
-        }
+    const rotation = scrollPosition * 60;
 
+    // Rotera kameran i stället för själva modellen
+    modell.cameraOrbit = `${rotation}deg 75deg 120%`;
+}
+
+window.addEventListener("scroll", roteraModell);
+window.addEventListener("resize", roteraModell);
+window.addEventListener("load", roteraModell);
+modell.addEventListener("load", roteraModell);
+
+
+        // Uppdatera rotationen när användaren scrollar
         window.addEventListener("scroll", roteraModell);
+
+        // Uppdatera vid ändrad fönsterstorlek
         window.addEventListener("resize", roteraModell);
 
-        roteraModell();
+        // Uppdatera när sidan har laddats
+        window.addEventListener("load", roteraModell);
+
+        // Uppdatera när 3D-modellen har laddats
+        modell.addEventListener("load", roteraModell);
     </script>
 
     <!-- Öppna och stäng sidomenyn -->
