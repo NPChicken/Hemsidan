@@ -43,19 +43,47 @@
 <!-- Vinröd övergång -->
 <div class="draperi"></div>
 
-    <!-- Vinröd fortsättning med 3D-modell -->
-    <div class="rod-fortsattning">
+    
+<!-- Vinröd fortsättning med 3D-modell och köpsektion -->
+<div class="rod-fortsattning">
 
-        <model-viewer
-            id="spinroll-modell"
-            src="https://spinroll.se/box.glb"
-            camera-orbit="0deg 75deg 120%"
-            camera-target="auto auto auto"
-            orientation="160deg 90deg 0deg"
-            shadow-intensity="0">
-        </model-viewer>
+    <div class="produkt-sektion">
+
+        <!-- 3D-modellen -->
+        <div class="modell-container">
+            <model-viewer
+                id="spinroll-modell"
+                src="https://spinroll.se/box.glb"
+                camera-orbit="0deg 75deg 120%"
+                camera-target="auto auto auto"
+                orientation="160deg 90deg 0deg"
+                shadow-intensity="0">
+            </model-viewer>
+        </div>
+
+        <!-- Köpsektion -->
+        <div class="kop-sektion">
+            <h2>EXILE</h2>
+            <p class="produkt-beskrivning">
+                Ett brädspel från SpinRoll UF.
+            </p>
+
+            <p class="pris">249 kr</p>
+
+            <a
+                href="https://buy.stripe.com/test_3cI7sLetNbVK2BAaPPdIA00"
+                class="kop-knapp">
+                Köp Exile
+            </a>
+
+            <p class="test-info">
+                Betalningen sker i Stripes testmiljö.
+            </p>
+        </div>
 
     </div>
+
+</div>
 
     <!-- Bibliotek för 3D-modellen -->
     <script
