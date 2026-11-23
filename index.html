@@ -10,14 +10,93 @@
 </head>
 
 <body>
+
+    <!-- Menyknapp -->
+    <button
+        class="menyknapp"
+        id="menyknapp"
+        aria-label="Öppna meny"
+        aria-expanded="false"
+        aria-controls="sidomeny">
+        ☰
+    </button>
+
+    <!-- Sidomeny -->
+    <nav class="sidomeny" id="sidomeny" aria-label="Huvudmeny">
+        <a href="index.html">Hem</a>
+        <a href="exile.html">Exile</a>
+        <a href="om-oss.html">Om oss</a>
+        <a href="kontakt.html">Kontakt</a>
+    </nav>
+
     <!-- Banner -->
     <img src="pictures/banner.png" alt="SpinRoll banner">
 
     <!-- Vinröd övergång -->
     <div class="draperi"></div>
 
-    <!-- Vinröd fortsättning -->
-    <div class="rod-fortsattning"></div>
-</body>
+    <!-- Vinröd fortsättning med 3D-modell -->
+    <div class="rod-fortsattning">
 
+        <model-viewer
+            id="spinroll-modell"
+            src="https://spinroll.se/box.glb"
+            camera-orbit="0deg 75deg auto"
+            camera-target="auto auto auto"
+            orientation="160deg 90deg 0deg"
+            shadow-intensity="0">
+        </model-viewer>
+
+    </div>
+
+    <!-- Bibliotek för 3D-modellen -->
+    <script
+        type="module"
+        src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js">
+    </script>
+
+    <!-- Scrollstyrd rotation -->
+    <script>
+        const modell = document.querySelector("#spinroll-modell");
+
+        function roteraModell() {
+            const ruta = modell.getBoundingClientRect();
+
+            const modellMitt = ruta.top + ruta.height / 2;
+            const skarmMitt = window.innerHeight / 2;
+
+            const scrollPosition = (skarmMitt - modellMitt) / window.innerHeight;
+
+            const rotation = 160 + scrollPosition * 60;
+
+            modell.setAttribute(
+                "orientation",
+                `${rotation}deg 90deg 0deg`
+            );
+        }
+
+        window.addEventListener("scroll", roteraModell);
+        window.addEventListener("resize", roteraModell);
+
+        roteraModell();
+    </script>
+
+    <!-- Öppna och stäng sidomenyn -->
+    <script>
+        const menyknapp = document.querySelector("#menyknapp");
+        const sidomeny = document.querySelector("#sidomeny");
+
+        menyknapp.addEventListener("click", () => {
+            const oppen = sidomeny.classList.toggle("oppen");
+
+            menyknapp.textContent = oppen ? "×" : "☰";
+            menyknapp.setAttribute("aria-expanded", String(oppen));
+            menyknapp.setAttribute(
+                "aria-label",
+                oppen ? "Stäng meny" : "Öppna meny"
+            );
+        });
+    </script>
+
+</body>
 </html>

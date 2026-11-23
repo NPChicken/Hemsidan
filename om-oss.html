@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Om oss | SpinRoll UF</title>
+    <link rel="stylesheet" href="style-om-oss.css">
+</head>
+
+<body>
+
+    <!-- Menyknapp -->
+    <button
+        class="menyknapp"
+        id="menyknapp"
+        aria-label="Öppna meny"
+        aria-expanded="false"
+        aria-controls="sidomeny">
+        ☰
+    </button>
+
+    <!-- Sidomeny -->
+    <nav class="sidomeny" id="sidomeny" aria-label="Huvudmeny">
+        <a href="index.html">Hem</a>
+        <a href="exile.html">Exile</a>
+        <a href="om-oss.html">Om oss</a>
+        <a href="kontakt.html">Kontakt</a>
+    </nav>
+
+    <!-- Om oss -->
+    <section class="om-oss">
+
+        <div class="om-oss-kort">
+
+            <div class="overrubrik">
+                DET ÄR VI SOM ÄR
+            </div>
+
+            <h1>
+                SPINROLL<span>.</span>
+            </h1>
+
+            <h2>Mer än bara ett spel.</h2>
+
+            <p>
+                Vi är ett ungt team med en gemensam ambition –
+                att skapa spel som för människor närmare varandra.
+            </p>
+
+            <a href="#var-historia" class="las-mer">
+                Lär känna oss ↓
+            </a>
+
+        </div>
+
+        <div class="slogan">
+            KREATIVITET · GEMENSKAP · SPELGLÄDJE
+        </div>
+
+    </section>
+
+    <!-- Plats för framtida innehåll -->
+    <section id="var-historia" class="var-historia">
+        <h2>Vår historia</h2>
+    </section>
+
+    <!-- JavaScript för menyn -->
+    <script>
+        const menyknapp = document.querySelector("#menyknapp");
+        const sidomeny = document.querySelector("#sidomeny");
+
+        menyknapp.addEventListener("click", () => {
+            const oppen = sidomeny.classList.toggle("oppen");
+
+            menyknapp.textContent = oppen ? "×" : "☰";
+            menyknapp.setAttribute("aria-expanded", String(oppen));
+            menyknapp.setAttribute(
+                "aria-label",
+                oppen ? "Stäng meny" : "Öppna meny"
+            );
+        });
+    </script>
+
+</body>
+</html>

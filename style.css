@@ -35,6 +35,17 @@ body {
     background-color:#580a17;
 }
 
+#spinroll-modell {
+    display: block;
+    width: 100%;
+    max-width: 650px;
+    height: 600px;
+    margin: 0 auto;
+    background: transparent;
+
+    transform: translate(-280px, 250px);
+}
+
 img {
     display: block;
     width: 100%;
@@ -46,4 +57,56 @@ img {
     top: 0;
     left: 0;
     z-index: -1;
+}
+
+/* Menyknapp */
+.menyknapp {
+    position: fixed;
+    top: 25px;
+    left: 25px;
+    z-index: 1001;
+
+    background: transparent;
+    border: none;
+    color: #f2c99e;
+    font-size: 36px;
+    cursor: pointer;
+}
+
+/* Sidomeny */
+.sidomeny {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    background-color: #580a17;
+    z-index: 1000;
+
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+
+    padding: 110px 35px 35px;
+
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+/* När menyn är öppen */
+.sidomeny.oppen {
+    transform: translateX(0);
+}
+
+/* Menylänkar */
+.sidomeny a {
+    color: #f2c99e;
+    text-decoration: none;
+    font-size: 24px;
+}
+
+.sidomeny a:hover {
+    text-decoration: underline;
 }
