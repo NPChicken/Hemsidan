@@ -25,7 +25,7 @@ body {
     position: absolute;
     inset: 0;
 
-    background-image: url("https://github.com/NPChicken/website/blob/main/pictures/banner.png?raw=true");
+    background-image: url("pictures/banner.png");
     background-size: cover;
     background-position: center;
 }
