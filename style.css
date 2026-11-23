@@ -1,426 +1,58 @@
-.custom-flex {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-@media (min-width: 992px) {
 
-	.custom-flex {
-    flex-direction: row;
-  }
+* {
+    box-sizing: border-box;
 }
-.bakgrund {
-    background-image: url("https://cdn.abicart.com/shop/ws60/166760/files/Bilder/banner%20spinroll%20website.png?_t=1795357856");
-    background-size: contain;
-    background-position: center top;
-    background-repeat: no-repeat;
 
-    width: 100vw;
-    height: 100vh;
+html, body {
+    margin: 0;
+    padding: 0;
+}
 
-    position: fixed;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: -1;
+body {
+    background-color: #580a17;
+    color: #f2c99e;
+    font-family: Arial, sans-serif;
 }
-.nordic--header {
-    display: none;
-}
-.nordic--footer {
-    background-color: black;
+
+/* Banner */
+.hero {
     position: relative;
-    z-index: 2;
-    margin-top: 0;
-  
+    height: 100vh;
+    overflow: hidden;
 }
 
+.hero-bild {
+    position: absolute;
+    inset: 0;
+
+    background-image: url("https://github.com/NPChicken/website/blob/main/pictures/banner.png?raw=true");
+    background-size: cover;
+    background-position: center;
+}
+
+/* Vinröd övergång */
 .draperi {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-		z-index: 1;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 35vh;
 
-    left: 50%;
-    transform: translateX(-50%);
-
-    background:
-  	 		radial-gradient(
-        ellipse 70% 55% at 50% 0%,
-        transparent 70%,
-        #580a17 100%
-        
-    ), linear-gradient(
+    background: linear-gradient(
         to bottom,
-        transparent 35%,
-        #580a17 55%,
-        #580a17 100%
+        transparent,
+        #580a17
     );
 }
 
-.nordic--main-wrapper {
-    background: transparent !important; 
-    box-shadow: none !important;
-}
-
-.rod-fortsattning {
+/* Produktsektion */
+.produkt {
+    min-height: 100vh;
+    padding: 100px 10%;
     background-color: #580a17;
-
-    width: 100vw;
-    min-height: 600px;
-
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    padding-bottom: 0 !important;
 }
 
-
-.produkt-sektion {
-    width: 100%;
-    min-height: 700px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#spinroll-modell {
-    display: block;
-    width: min(90vw, 900px);
-    height: 600px;
-    background: transparent;
-}
-
-@media (max-width: 768px) {
-    .produkt-sektion {
-        min-height: 450px;
-    }
-
-    #spinroll-modell {
-        height: 400px;
-    }
-}
-
-.tws-container--tws-custom-html.background {
-    margin-top: 0;
-}
-.slot--breadcrumbs {
- 		margin-bottom: 0 
-}
-.nordic--main-wrapper {
-    padding-bottom: 0 !important;
-}
-
-
-/* STARTSEKTION */
-.spinroll-start {
-  position: relative;
-  width: 100%;
-}
-
-/* LOGGAN */
-.spinroll-logo {
-  position: absolute;
-  top: 18vh;
-  left: 50%;
-  transform: translateX(-50%);
-
-  width: 95%;
-  max-width: 750px;
-
-  z-index: 2;
-  text-align: center;
-  pointer-events: none;
-}
-
-.spinroll-logo img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-/* DRAPERIET LIGGER OVANPÅ LOGGAN */
-.spinroll-start .draperi {
-  z-index: 1;
-}
-
-body.startpage .nordic--body-wrapper {
-    padding-bottom: 0 !important;
-}
-
-
-/* SPINROLL TEAM */
-.spinroll-team {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: stretch;
-  gap: 22px;
-  width: 100%;
-  font-family: Arial, sans-serif;
-}
-
-/* PERSONKORT */
-.spinroll-person {
-  width: 230px;
-  max-width: 100%;
-  background: #ffffff;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 5px 18px rgba(88,10,23,0.12);
-  text-align: center;
-}
-
-.spinroll-person > img {
-  width: 100%;
-  height: 250px;
-  object-fit: cover;
-  display: block;
-}
-
-.spinroll-person-content {
-  padding: 20px 12px 22px;
-}
-
-.spinroll-person h2 {
-  color: #580a17;
-  font-size: 21px;
-  margin: 0 0 12px;
-  font-weight: 700;
-}
-
-.spinroll-role {
-  display: inline-block;
-  background: #f2c99e;
-  color: #580a17;
-  padding: 7px 13px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.spinroll-secondary {
-  color: #a91e3d;
-  font-size: 13px;
-  margin: 9px 0 0;
-  font-weight: 600;
-}
-
-/* UTFÄLLBAR PRESENTATION */
-.spinroll-details {
-  margin-top: 18px;
-  border-radius: 12px;
-  background: #f2c99e;
-  overflow: hidden;
-}
-
-.spinroll-details summary {
-  cursor: pointer;
-  padding: 12px 8px;
-  color: #580a17;
-  font-size: 13px;
-  font-weight: 700;
-  list-style: none;
-}
-
-.spinroll-details summary::-webkit-details-marker {
-  display: none;
-}
-
-.spinroll-details summary::after {
-  content: " +";
-  font-size: 17px;
-}
-
-.spinroll-details[open] summary::after {
-  content: " −";
-}
-
-.spinroll-bio {
-  padding: 4px 14px 17px;
-  color: #580a17;
-  font-size: 13px;
-  line-height: 1.6;
-  text-align: left;
-}
-
-
-/* PERSONKORT - SAMMA STORLEK */
-
-.spinroll-person {
-  display: flex;
-  flex-direction: column;
-}
-
-.spinroll-person-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-}
-
-/* ROLLER OCH NAMN */
-.spinroll-person-content h2 {
-  min-height: 52px;
-}
-
-/* KNAPPAR PÅ SAMMA HÖJD */
-.spinroll-details {
-  margin-top: auto;
-  width: 100%;
-}
-
-
-/* OM OSS - VAD OCH VARFÖR */
-
-.spinroll-about {
-  background: #f2c99e;
-  padding: 45px 30px;
-  border-radius: 22px;
-  max-width: 1100px;
-  margin: 50px auto;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
-/* RUBRIKRUTAN */
-
-.spinroll-about-header {
-  background: #580a17;
-  border-radius: 16px;
-  padding: 35px 25px;
-  text-align: center;
-  margin-bottom: 22px;
-}
-
-.spinroll-about-header h2 {
-  color: #ffffff;
-  font-size: 32px;
-  font-weight: 700;
-  margin: 0 0 15px;
-}
-
-.spinroll-about-line {
-  background: #a91e3d;
-  width: 65px;
-  height: 4px;
-  border-radius: 10px;
-  margin: 0 auto 15px;
-}
-
-.spinroll-about-header p {
-  color: #f2c99e;
-  font-size: 16px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* INFORMATIONSKORTEN */
-
-.spinroll-about-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-}
-
-.spinroll-about-card {
-  background: #580a17;
-  color: #ffffff;
-  padding: 28px;
-  border-radius: 16px;
-  box-sizing: border-box;
-}
-
-
-/* SPINROLL - IKONER */
-
-.spinroll-about .spinroll-about-icon {
-  width: 58px !important;
-  height: 58px !important;
-  min-width: 58px;
-  min-height: 58px;
-  max-width: 58px;
-
-  margin-bottom: 18px;
-  border-radius: 14px;
-  background: #ffffff;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* TVINGA SVG TILL RÄTT STORLEK */
-
-.spinroll-about .spinroll-about-icon svg {
-  display: block !important;
-
-  width: 30px !important;
-  height: 30px !important;
-
-  min-width: 30px !important;
-  min-height: 30px !important;
-  max-width: 30px !important;
-  max-height: 30px !important;
-
-  flex: 0 0 30px;
-}
-
-/* IKONERNAS FÄRGER */
-
-.spinroll-about .spinroll-about-icon svg rect {
-  stroke: #a91e3d;
-  stroke-width: 3.5;
-  fill: none;
-}
-
-.spinroll-about .spinroll-about-icon svg circle {
-  fill: #a91e3d;
-  stroke: none;
-}
-
-.spinroll-about .spinroll-about-icon svg path {
-  fill: #a91e3d;
-  stroke: none;
-}
-
-.spinroll-about-card h3 {
-  color: #ffffff;
-  font-size: 23px;
-  margin: 0 0 15px;
-}
-
-.spinroll-about-card p {
-  color: #ffffff;
-  font-size: 15px;
-  line-height: 1.7;
-  margin: 0;
-}
-
-/* MOBILANPASSNING */
-
-@media (max-width: 650px) {
-
-  .spinroll-about {
-    padding: 22px 15px;
-    margin: 30px auto;
-  }
-
-  .spinroll-about-header {
-    padding: 28px 16px;
-  }
-
-  .spinroll-about-header h2 {
-    font-size: 26px;
-  }
-
-  .spinroll-about-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-
-  .spinroll-about-card {
-    padding: 23px;
-  }
+.produkt h1 {
+    font-size: 64px;
+    margin: 0;
 }
