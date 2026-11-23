@@ -21,9 +21,8 @@ body {
     width: 100vh;
     height: 100vh;
     overflow: hidden;
-    display: flex;
-    justify-content: center top;
-    align-items: center top;
+    justify-content: center;
+    align-items: flex-start;
 }
 
 .hero-bild {
