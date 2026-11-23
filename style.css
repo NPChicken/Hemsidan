@@ -229,3 +229,152 @@ img {
         top: 55vh;
     }
 }
+
+
+/* Kundvagnsikon */
+#kundvagn-knapp {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    z-index: 1002;
+    background: #580a17;
+    color: #f2c99e;
+    border: 1px solid #f2c99e;
+    border-radius: 12px;
+    padding: 12px 17px;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+#kundvagn-antal {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* Sidopanel */
+#kundvagn-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    max-width: 100%;
+    height: 100dvh;
+    z-index: 1100;
+
+    background: #580a17;
+    color: #f2c99e;
+    font-family: Arial, sans-serif;
+
+    padding: 28px;
+    box-shadow: -10px 0 35px #0005;
+
+    transform: translateX(110%);
+    transition: transform 0.3s ease;
+
+    display: flex;
+    flex-direction: column;
+}
+
+#kundvagn-panel.oppen {
+    transform: translateX(0);
+}
+
+.kundvagn-rubrik {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #a91e3d;
+}
+
+.kundvagn-rubrik h2 {
+    font-size: 28px;
+}
+
+#stang-kundvagn {
+    background: none;
+    color: #f2c99e;
+    border: none;
+    font-size: 35px;
+    cursor: pointer;
+}
+
+#kundvagn-lista {
+    flex: 1;
+    overflow-y: auto;
+    padding-top: 25px;
+}
+
+.kundvagn-produkt {
+    padding: 18px 0;
+    border-bottom: 1px solid #a91e3d;
+}
+
+.kundvagn-produkt p {
+    color: #ffffff;
+}
+
+.antal-kontroller {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.antal-kontroller button {
+    background: #a91e3d;
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 6px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.kundvagn-botten {
+    border-top: 1px solid #a91e3d;
+    padding-top: 20px;
+}
+
+.kundvagn-botten p {
+    display: flex;
+    justify-content: space-between;
+    font-size: 22px;
+}
+
+#till-kassan {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 17px;
+    background: #a91e3d;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#till-kassan:hover {
+    background: #c52b4e;
+}
+
+#till-kassan:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+/* Se till att köpknappen också fungerar som button */
+button.kop-knapp {
+    border: none;
+    cursor: pointer;
+}
+
+@media (max-width: 650px) {
+    #kundvagn-knapp {
+        top: 15px;
+        right: 15px;
+    }
+
+    #kundvagn-panel {
+        width: 100%;
+    }
+}

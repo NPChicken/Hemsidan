@@ -1,0 +1,422 @@
+
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Kassan | SpinRoll UF</title>
+
+    <!-- Stripe -->
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #580a17;
+            color: #f2c99e;
+            font-family: Arial, sans-serif;
+        }
+
+        .checkout-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 30px 25px;
+        }
+
+        .checkout-header a {
+            color: #f2c99e;
+            text-decoration: none;
+        }
+
+        .checkout-header .logotyp {
+            font-size: 30px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .checkout-header .tillbaka {
+            font-size: 15px;
+        }
+
+        .checkout-container {
+            display: grid;
+            grid-template-columns: 0.8fr 1.2fr;
+            gap: 50px;
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 35px 25px 80px;
+            align-items: start;
+        }
+
+        .orderoversikt {
+            background: #701627;
+            border: 1px solid #873849;
+            padding: 32px;
+            border-radius: 16px;
+        }
+
+        h1 {
+            font-size: 35px;
+            margin: 0 0 10px;
+        }
+
+        .underrubrik {
+            color: #e0b995;
+            line-height: 1.6;
+            margin-bottom: 35px;
+        }
+
+        .produktrad {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 0;
+            border-top: 1px solid #924355;
+        }
+
+        .produktnamn {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .produktantal {
+            font-size: 14px;
+            color: #e0b995;
+            margin-top: 7px;
+        }
+
+        .totalrad {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 24px;
+            border-top: 1px solid #924355;
+            font-size: 23px;
+            font-weight: bold;
+        }
+
+        .info {
+            font-size: 13px;
+            color: #e0b995;
+            line-height: 1.6;
+            margin-top: 22px;
+        }
+
+        .betalning {
+            background: #ffffff;
+            color: #333333;
+            padding: 32px;
+            border-radius: 16px;
+            min-height: 400px;
+        }
+
+        .betalning h2 {
+            font-size: 25px;
+            margin: 0 0 25px;
+        }
+
+        #checkout {
+            width: 100%;
+        }
+
+        #checkout-meddelande {
+            color: #a91e3d;
+            line-height: 1.6;
+        }
+
+        .tom-kundvagn {
+            display: none;
+            text-align: center;
+            padding: 70px 20px;
+        }
+
+        .tom-kundvagn a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 15px 30px;
+            background: #a91e3d;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 800px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+                gap: 25px;
+                padding: 20px 15px 50px;
+            }
+
+            .orderoversikt,
+            .betalning {
+                padding: 25px 20px;
+            }
+
+            .checkout-header {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 29px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="checkout-header">
+        <a class="logotyp" href="index.html">
+            SPINROLL.
+        </a>
+
+        <a class="tillbaka" href="index.html">
+            ← Fortsätt handla
+        </a>
+    </header>
+
+    <main class="checkout-container" id="checkout-container">
+
+        <!-- Vänster sida: orderöversikt -->
+        <section class="orderoversikt">
+
+            <h1>Din beställning</h1>
+
+            <p class="underrubrik">
+                Kontrollera dina produkter innan du betalar.
+            </p>
+
+            <div id="order-produkter"></div>
+
+            <div class="totalrad">
+                <span>Totalt</span>
+                <span id="order-total">0 kr</span>
+            </div>
+
+            <p class="info">
+                Eventuell fraktkostnad visas separat
+                när den har konfigurerats.
+                Betalningen hanteras säkert av Stripe.
+            </p>
+
+        </section>
+
+        <!-- Höger sida: Stripe Embedded Checkout -->
+        <section class="betalning">
+
+            <h2>Betalning</h2>
+
+            <div id="checkout-meddelande">
+                Laddar säker betalning...
+            </div>
+
+            <div id="checkout"></div>
+
+        </section>
+
+    </main>
+
+    <section class="tom-kundvagn" id="tom-kundvagn">
+        <h1>Din kundvagn är tom</h1>
+        <p>Lägg till ett spel för att fortsätta.</p>
+
+        <a href="index.html">Tillbaka till butiken</a>
+    </section>
+
+    <script>
+        // ========================================
+        // INSTÄLLNINGAR
+        // ========================================
+
+        // Er publika Stripe-testnyckel.
+        // Den börjar med pk_test_
+        const STRIPE_PUBLIC_KEY = "pk_test_51UeuH4Gh40kXtPEaLkcQqRHgd2pbZYq8YD3mAYrDvfX0c9NKD597C2F9jaKMawCdzerCTvn97TlaQiKjNHyxS2Zi00PJnbvRNr";
+
+        // Din publicerade Cloudflare Worker-adress
+        const CHECKOUT_API = "https://spinroll-checkout.john-svartstrom.workers.dev";
+
+        // ========================================
+        // PRODUKTER
+        // ========================================
+
+        const produkter = {
+            exile: {
+                namn: "Exile",
+                pris: 249
+            }
+        };
+
+        // ========================================
+        // HÄMTA KUNDVAGN
+        // ========================================
+
+        let kundvagn = {};
+
+        try {
+            kundvagn = JSON.parse(
+                localStorage.getItem("spinroll-kundvagn") || "{}"
+            );
+        } catch (error) {
+            kundvagn = {};
+        }
+
+        // ========================================
+        // VISA ORDERÖVERSIKT
+        // ========================================
+
+        function visaOrder() {
+            const lista =
+                document.getElementById("order-produkter");
+
+            const totalElement =
+                document.getElementById("order-total");
+
+            let total = 0;
+            let antalProdukter = 0;
+
+            for (const [id, antal] of Object.entries(kundvagn)) {
+                if (
+                    !produkter[id] ||
+                    !Number.isInteger(antal) ||
+                    antal < 1 ||
+                    antal > 10
+                ) {
+                    continue;
+                }
+
+                const produkt = produkter[id];
+                const pris = produkt.pris * antal;
+
+                total += pris;
+                antalProdukter += antal;
+
+                const rad = document.createElement("div");
+                rad.className = "produktrad";
+
+                const info = document.createElement("div");
+
+                const namn = document.createElement("div");
+                namn.className = "produktnamn";
+                namn.textContent = produkt.namn;
+
+                const antalText = document.createElement("div");
+                antalText.className = "produktantal";
+                antalText.textContent = `Antal: ${antal}`;
+
+                const summa = document.createElement("strong");
+                summa.textContent = `${pris} kr`;
+
+                info.append(namn, antalText);
+                rad.append(info, summa);
+                lista.appendChild(rad);
+            }
+
+            totalElement.textContent = `${total} kr`;
+
+            if (antalProdukter === 0) {
+                document.getElementById("checkout-container")
+                    .style.display = "none";
+
+                document.getElementById("tom-kundvagn")
+                    .style.display = "block";
+
+                return false;
+            }
+
+            return true;
+        }
+
+        // ========================================
+        // STARTA STRIPE EMBEDDED CHECKOUT
+        // ========================================
+
+        async function startaCheckout() {
+            const meddelande = document.getElementById(
+                "checkout-meddelande"
+            );
+
+            if (
+                !STRIPE_PUBLIC_KEY.startsWith("pk_test_") ||
+                !CHECKOUT_API.startsWith("https://")
+            ) {
+                meddelande.textContent =
+                    "Stripe behöver konfigureras med " +
+                    "publik nyckel och Worker-adress.";
+
+                return;
+            }
+
+            try {
+                const stripe = Stripe(STRIPE_PUBLIC_KEY);
+
+                const checkout = await stripe.initEmbeddedCheckout({
+                    fetchClientSecret: async () => {
+
+                        const items = Object.entries(kundvagn)
+                            .filter(([id, quantity]) =>
+                                produkter[id] &&
+                                Number.isInteger(quantity) &&
+                                quantity >= 1 &&
+                                quantity <= 10
+                            )
+                            .map(([id, quantity]) => ({
+                                id,
+                                quantity
+                            }));
+
+                        const response = await fetch(CHECKOUT_API, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ items })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok || !data.clientSecret) {
+                            throw new Error(
+                                data.error || "Kassan kunde inte skapas."
+                            );
+                        }
+
+                        return data.clientSecret;
+                    }
+                });
+
+                meddelande.style.display = "none";
+
+                checkout.mount("#checkout");
+
+            } catch (error) {
+                console.error(error);
+
+                meddelande.textContent =
+                    "Kunde inte ladda betalningen. " +
+                    "Kontrollera inställningarna och försök igen.";
+            }
+        }
+
+        // ========================================
+        // INITIERING
+        // ========================================
+
+        if (visaOrder()) {
+            startaCheckout();
+        }
+    </script>
+
+</body>
+</html>
