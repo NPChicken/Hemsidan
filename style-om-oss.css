@@ -32,7 +32,7 @@ body {
 
     background: transparent;
     border: none;
-    color: #580a17;
+    color: #f2c99e;
     font-size: 36px;
     cursor: pointer;
 }
@@ -478,5 +478,28 @@ body {
 
     .spinroll-about-card {
         padding: 23px;
+    }
+}
+
+
+/* Mörkröda sidobalkar på Om oss-sidan */
+body {
+    background-color: #580a17;
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+/* Beige innehållsyta */
+.om-oss,
+.team-sektion,
+.spinroll-about {
+    position: relative;
+}
+
+/* Smalare balkar på mobil */
+@media (max-width: 650px) {
+    body {
+        padding-left: 12px;
+        padding-right: 12px;
     }
 }
