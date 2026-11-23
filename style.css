@@ -28,6 +28,7 @@ body {
     background-image: url("pictures/banner.png");
     background-size: contain;
     background-position: center;
+    background-repeat: no-repeat;
 }
 
 /* Vinröd övergång */
