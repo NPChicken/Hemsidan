@@ -19,13 +19,18 @@ body {
 .hero {
     position: relative;
     width: 100%;
+    height: 100vh;
     overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .hero-bild {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: contain;
 }
 
 /* Vinröd övergång */
