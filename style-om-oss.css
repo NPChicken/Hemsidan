@@ -276,7 +276,7 @@ body {
 /* UTFÄLLBAR PRESENTATION */
 
 .spinroll-details {
-    margin-top: auto;
+    margin-top: 18px;
     width: 100%;
     border-radius: 12px;
     background: #f2c99e;
@@ -613,4 +613,31 @@ body {
     .informationsruta h2 {
         font-size: 26px;
     }
+}
+
+
+/* JÄMN PLACERING AV PERSONKORT */
+
+/* Samma höjd för korten på varje rad */
+.spinroll-team {
+    align-items: stretch;
+}
+
+/* Innehållet ordnas uppifrån och ned */
+.spinroll-person-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+/* Kort utan extra rollrad får motsvarande utrymme */
+.spinroll-person-content:not(:has(.spinroll-secondary))
+.spinroll-role {
+    margin-bottom: 22px;
+}
+
+/* Presentationen öppnas under knappen */
+.spinroll-details {
+    flex-shrink: 0;
 }
