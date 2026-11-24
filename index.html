@@ -29,64 +29,65 @@
         <a href="kontakt.html">Kontakt</a>
     </nav>
 
-	<!-- Banner -->
-	<img src="pictures/banner.png" alt="SpinRoll banner">
+    <!-- Banner -->
+    <img src="pictures/banner.png" alt="SpinRoll banner">
 
-	<!-- SpinRoll-logga -->
-	<div class="logga-container">
-   	 <img
-        src="pictures/logo.png"
-        alt="SpinRoll UF"
-        class="start-logga">
-</div>
+    <!-- SpinRoll-logga -->
+    <div class="logga-container">
+        <img
+            src="pictures/logo.png"
+            alt="SpinRoll UF"
+            class="start-logga">
+    </div>
 
-<!-- Vinröd övergång -->
-<div class="draperi"></div>
+    <!-- Vinröd övergång -->
+    <div class="draperi"></div>
 
-    
-<!-- Vinröd fortsättning med 3D-modell och köpsektion -->
-<div class="rod-fortsattning">
+    <!-- Vinröd fortsättning med 3D-modell och köpsektion -->
+    <div class="rod-fortsattning">
 
-    <div class="produkt-sektion">
+        <div class="produkt-sektion">
 
-        <!-- 3D-modellen -->
-        <div class="modell-container">
-            <model-viewer
-                id="spinroll-modell"
-                src="https://spinroll.se/box.glb"
-                camera-orbit="0deg 75deg 120%"
-                camera-target="auto auto auto"
-                orientation="160deg 90deg 0deg"
-                shadow-intensity="0">
-            </model-viewer>
-        </div>
+            <!-- 3D-modellen -->
+            <div class="modell-container">
+                <model-viewer
+                    id="spinroll-modell"
+                    src="https://spinroll.se/box.glb"
+                    camera-orbit="0deg 75deg 120%"
+                    camera-target="auto auto auto"
+                    orientation="160deg 90deg 0deg"
+                    shadow-intensity="0">
+                </model-viewer>
+            </div>
 
-        <!-- Köpsektion -->
-        <div class="kop-sektion">
-            <h2>EXILE</h2>
-            <p class="produkt-beskrivning">
-                Ett brädspel från SpinRoll UF.
-            </p>
+            <!-- Köpsektion -->
+            <div class="kop-sektion">
 
-            <p class="pris">249 kr</p>
+                <h2>EXILE</h2>
 
-            
-		<button type="button" class="kop-knapp" onclick="laggIKundvagn('exile')">
-   			 <span>🛒</span> Lägg i kundvagn
-		</button>
+                <p class="produkt-beskrivning">
+                    Den farligaste natten är kommen, i en endaste natt löper hamnskiftarna fritt bland folket. Därför har de mest kunniga av ritualister samlats runt ett stenaltare. Deras 			jobb, utföra ritualen för att bannlysa odjuren. Det de inte vet är att hamnskiftare har infiltrerat det hemliga mötet för att sabotera ritualen.
+                </p>
 
-                class="kop-knapp">
-                Köp Exile
-            </a>
+                <p class="pris">249 kr</p>
 
-            <p class="test-info">
-                Betalningen sker i Stripes testmiljö.
-            </p>
+                <!-- Lägg i kundvagn -->
+                <button
+                    type="button"
+                    class="kop-knapp"
+                    onclick="laggIKundvagn('exile')">
+                    <span>🛒</span> Lägg i kundvagn
+                </button>
+
+                <p class="test-info">
+                    Betalningen sker i Stripes testmiljö.
+                </p>
+
+            </div>
+
         </div>
 
     </div>
-
-</div>
 
     <!-- Bibliotek för 3D-modellen -->
     <script
@@ -96,40 +97,26 @@
 
     <!-- Scrollstyrd rotation -->
     <script>
+        const modell = document.querySelector("#spinroll-modell");
 
-const modell = document.querySelector("#spinroll-modell");
+        function roteraModell() {
+            const ruta = modell.getBoundingClientRect();
 
-function roteraModell() {
-    const ruta = modell.getBoundingClientRect();
+            const modellMitt = ruta.top + ruta.height / 2;
+            const skarmMitt = window.innerHeight / 2;
 
-    const modellMitt = ruta.top + ruta.height / 2;
-    const skarmMitt = window.innerHeight / 2;
+            const scrollPosition =
+                (skarmMitt - modellMitt) / window.innerHeight;
 
-    const scrollPosition =
-        (skarmMitt - modellMitt) / window.innerHeight;
+            const rotation = scrollPosition * 60;
 
-    const rotation = scrollPosition * 60;
+            // Rotera kameran i stället för själva modellen
+            modell.cameraOrbit = `${rotation}deg 75deg 120%`;
+        }
 
-    // Rotera kameran i stället för själva modellen
-    modell.cameraOrbit = `${rotation}deg 75deg 120%`;
-}
-
-window.addEventListener("scroll", roteraModell);
-window.addEventListener("resize", roteraModell);
-window.addEventListener("load", roteraModell);
-modell.addEventListener("load", roteraModell);
-
-
-        // Uppdatera rotationen när användaren scrollar
         window.addEventListener("scroll", roteraModell);
-
-        // Uppdatera vid ändrad fönsterstorlek
         window.addEventListener("resize", roteraModell);
-
-        // Uppdatera när sidan har laddats
         window.addEventListener("load", roteraModell);
-
-        // Uppdatera när 3D-modellen har laddats
         modell.addEventListener("load", roteraModell);
     </script>
 
@@ -149,6 +136,9 @@ modell.addEventListener("load", roteraModell);
             );
         });
     </script>
-<script src="kundvagn.js" defer></script>
+
+    <!-- Kundvagn -->
+    <script src="kundvagn.js" defer></script>
+
 </body>
 </html>

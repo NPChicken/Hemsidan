@@ -25,14 +25,19 @@
             font-family: Arial, sans-serif;
         }
 
-        .checkout-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1250px;
-            margin: 0 auto;
-            padding: 30px 25px;
-        }
+.checkout-header .logotyp {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.checkout-header .logotyp img {
+    display: block;
+    width: 200px;
+    max-width: 45vw;
+    height: auto;
+    object-fit: contain;
+}
 
         .checkout-header a {
             color: #f2c99e;
@@ -178,10 +183,10 @@
 <body>
 
     <header class="checkout-header">
-        <a class="logotyp" href="index.html">
-            SPINROLL.
-        </a>
 
+	<a class="logotyp" href="index.html">
+    		<img src="pictures/logo.png" alt="SpinRoll UF">
+	</a>
         <a class="tillbaka" href="index.html">
             ← Fortsätt handla
         </a>
