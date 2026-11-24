@@ -139,10 +139,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.createElement("div");
 
     container.innerHTML = `
-        <button id="kundvagn-knapp" type="button"
-            aria-label="Öppna kundvagn">
-            🛒 <span id="kundvagn-antal">0</span>
-        </button>
+        
+<button id="kundvagn-knapp" type="button"
+    aria-label="Öppna kundvagn">
+
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="25"
+        height="25"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true">
+
+        <circle cx="8" cy="21" r="1"/>
+        <circle cx="19" cy="21" r="1"/>
+        <path d="M2 2h2l2.4 12.4a2 2 0 0 0 2 1.6h10a2 2 0 0 0 2-1.6L22 6H5"/>
+
+    </svg>
+
+    <span id="kundvagn-antal">0</span>
+</button>
 
         <aside id="kundvagn-panel" aria-label="Kundvagn">
             <div class="kundvagn-rubrik">

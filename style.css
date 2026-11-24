@@ -379,3 +379,113 @@ button.kop-knapp {
         width: 100%;
     }
 }
+
+/* ============================= */
+/* PRODUKTINFORMATION            */
+/* ============================= */
+
+.produktinformation {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 30px 100px;
+    font-family: Arial, sans-serif;
+}
+
+/* Fyra snabbfaktarutor */
+.snabbfakta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.fakta-ruta {
+    background-color: #f2c99e;
+    color: #580a17;
+    border-radius: 16px;
+    padding: 30px 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+}
+
+.fakta-ikon {
+    font-size: 32px;
+    margin-bottom: 15px;
+}
+
+.fakta-ruta h3 {
+    font-size: 17px;
+    margin: 0 0 10px;
+}
+
+.fakta-ruta p {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Beskrivning och komponenter */
+.informationsruta {
+    background-color: #f2c99e;
+    color: #580a17;
+    border-radius: 16px;
+    padding: 35px 40px;
+    margin-bottom: 30px;
+}
+
+.informationsruta h2 {
+    font-size: 32px;
+    margin: 0 0 20px;
+}
+
+.informationsruta p {
+    font-size: 17px;
+    line-height: 1.8;
+    margin: 0 0 15px;
+}
+
+.komponentlista {
+    padding-left: 25px;
+    font-size: 17px;
+    line-height: 2;
+}
+
+/* Surfplatta */
+@media (max-width: 850px) {
+    .snabbfakta {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Mobil */
+@media (max-width: 500px) {
+    .produktinformation {
+        padding: 20px 15px 60px;
+    }
+
+    .snabbfakta {
+        gap: 12px;
+    }
+
+    .fakta-ruta {
+        padding: 20px 10px;
+        min-height: 150px;
+    }
+
+    .fakta-ruta p {
+        font-size: 16px;
+    }
+
+    .informationsruta {
+        padding: 25px 20px;
+    }
+
+    .informationsruta h2 {
+        font-size: 26px;
+    }
+}
