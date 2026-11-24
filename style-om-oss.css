@@ -641,3 +641,76 @@ body {
 .spinroll-details {
     flex-shrink: 0;
 }
+
+
+/* ========================================
+   FÖRBÄTTRADE PERSONKORT
+======================================== */
+
+/* Korten växer oberoende av varandra */
+.spinroll-team {
+    align-items: flex-start;
+    gap: 20px;
+}
+
+/* Något bredare personkort */
+.spinroll-person {
+    width: 250px;
+    max-width: 100%;
+    flex-shrink: 0;
+}
+
+/* Bilderna */
+.spinroll-person > img {
+    height: 270px;
+    object-fit: cover;
+}
+
+/* Innehållet har inte flexibel höjd */
+.spinroll-person-content {
+    flex: 0 0 auto;
+    padding: 20px 15px 22px;
+}
+
+/* Samma utrymme för namnen */
+.spinroll-person-content h2 {
+    min-height: 52px;
+    margin-bottom: 12px;
+}
+
+/* Samma utrymme för rollerna */
+.spinroll-role {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    width: 100%;
+    min-height: 50px;
+    padding: 8px 12px;
+
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 12px;
+}
+
+/* Ta bort tidigare extra marginal */
+.spinroll-person-content:not(:has(.spinroll-secondary))
+.spinroll-role {
+    margin-bottom: 0;
+}
+
+/* Knappen stannar under rollen */
+.spinroll-details {
+    margin-top: 18px;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+/* Presentationen växer nedåt */
+.spinroll-bio {
+    padding: 12px 15px 18px;
+    border-top: 1px solid rgba(88, 10, 23, 0.15);
+    text-align: left;
+    line-height: 1.7;
+}
