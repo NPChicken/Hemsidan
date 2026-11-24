@@ -80,11 +80,17 @@ body {
    INTRODUKTION – DET ÄR VI SOM ÄR SPINROLL
 ======================================== */
 
+
 .om-oss {
     background-color: #f2c99e;
     padding: 55px 20px;
     border-radius: 18px;
+
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
 }
+
 
 .om-oss-kort {
     max-width: 850px;
