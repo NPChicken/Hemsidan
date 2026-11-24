@@ -489,3 +489,101 @@ button.kop-knapp {
         font-size: 26px;
     }
 }
+
+
+
+/* ========================================
+   SPINROLL - DEKORATIVA SIDORNAMENT
+======================================== */
+
+/* Den mörkröda delen blir förälder */
+.rod-fortsattning {
+    position: relative;
+    isolation: isolate;
+}
+
+/* Ornament på båda sidor */
+.rod-fortsattning::before,
+.rod-fortsattning::after {
+    content: "";
+    position: absolute;
+    top: 80px;
+
+    width: 46px;
+    height: 1000px;
+
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.7;
+
+    /* Linje och små dekorationer */
+    background:
+        radial-gradient(
+            circle,
+            #f2c99e 0 5px,
+            transparent 6px
+        ) center top / 14px 14px no-repeat,
+
+        radial-gradient(
+            circle,
+            #f2c99e 0 3px,
+            transparent 4px
+        ) center 45px / 10px 10px no-repeat,
+
+        linear-gradient(
+            to bottom,
+            #f2c99e,
+            rgba(242,201,158,0.35)
+        ) center / 2px 100% no-repeat;
+
+    /* Dekorationen tonas ut nedåt */
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        black 0%,
+        black 55%,
+        transparent 100%
+    );
+
+    mask-image: linear-gradient(
+        to bottom,
+        black 0%,
+        black 55%,
+        transparent 100%
+    );
+}
+
+/* Vänster sida */
+.rod-fortsattning::before {
+    left: 3%;
+}
+
+/* Höger sida */
+.rod-fortsattning::after {
+    right: 3%;
+}
+
+/* Innehållet visas framför dekorationerna */
+.produkt-sektion,
+.produktinformation {
+    position: relative;
+    z-index: 1;
+}
+
+/* Anpassa för mindre skärmar */
+@media (max-width: 750px) {
+    .rod-fortsattning::before,
+    .rod-fortsattning::after {
+        width: 18px;
+        height: 650px;
+        opacity: 0.45;
+    }
+
+    .rod-fortsattning::before {
+        left: 8px;
+    }
+
+    .rod-fortsattning::after {
+        right: 8px;
+    }
+}
+
