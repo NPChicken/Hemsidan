@@ -100,11 +100,27 @@ body {
     font-size: 18px;
     font-weight: bold;
     border-radius: 10px;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.kop-knapp:hover {
-    background-color: #c52b4e;
+/* Diskret effekt vid hover, endast på enheter med muspekare */
+@media (hover: hover) and (pointer: fine) {
+    .kop-knapp:hover {
+        background-color: #c52b4e;
+        transform: scale(1.045);
+        box-shadow: 0 0 20px rgba(242, 201, 158, 0.38);
+    }
+}
+
+.kop-knapp:focus-visible {
+    outline: 3px solid #f2c99e;
+    outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kop-knapp {
+        transition: none;
+    }
 }
 
 .test-info {
