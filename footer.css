@@ -48,3 +48,9 @@
     .spinroll-footer-grid { grid-template-columns: 1fr; gap: 28px; }
     .spinroll-footer { padding: 36px 20px 20px; }
 }
+
+/* Nyhetsbrev: samtycke och aktiv knapp */
+.spinroll-footer .footer-consent { display: flex; align-items: flex-start; gap: 10px; margin-top: 14px; font-size: 14px; line-height: 1.5; }
+.spinroll-footer .footer-consent input { width: 18px; height: 18px; flex: 0 0 18px; margin: 2px 0 0; accent-color: #f2c99e; }
+.spinroll-footer button:not(:disabled) { cursor: pointer; }
+.spinroll-footer button:not(:disabled):hover { background: #fff; }
