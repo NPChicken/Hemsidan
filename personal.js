@@ -6,14 +6,18 @@ const SUPABASE_URL = "https://bevemgjmcdkcbtsxezsa.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_oOX7KHJwEIGkdiy9ZwMsgw_UlMpW6fA";
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-// Visningsbegränsning för personalpanelen – INTE en säkerhetsgräns för databasen.
-// Komplettera med RLS och serverbaserad rollkontroll innan orderdata kopplas på.
-const STAFF_EMAILS = new Set([
-    "john.svartstrom@hitachigymnasiet.se",
-    "julius.saers@hitachigymnasiet.se",
-    "wictor.fredriksson@hitachigymnasiet.se",
-    "ida.tengner@hitachigymnasiet.se"
-]);
+// Supabase Auth identifierar användaren, men medlemskap och orderåtkomst
+// kontrolleras av RLS i databasen. Ingen lista med mejladresser i klientkoden.
+async function getActiveStaffMembership(userId) {
+    const { data, error } = await supabase
+        .from("staff_members")
+        .select("role, active")
+        .eq("user_id", userId)
+        .eq("active", true)
+        .maybeSingle();
+    if (error) throw error;
+    return data;
+}
 
 const $ = id => document.getElementById(id);
 const views = ["login-view", "forgot-view", "recovery-view"];
@@ -53,13 +57,19 @@ async function renderSession(session) {
         showAuthView("login-view");
         return;
     }
-    if (!STAFF_EMAILS.has((session.user.email || "").toLowerCase())) {
-        await supabase.auth.signOut();
+    try {
+        const membership = await getActiveStaffMembership(session.user.id);
+        if (!membership) {
+            showAuthView("login-view");
+            showMessage("Ditt konto är inloggat men har inte personalbehörighet. Be administratören lägga till dig i Supabase.");
+            return;
+        }
+        showDashboard(session.user);
+    } catch (error) {
         showAuthView("login-view");
-        showMessage("Det kontot har inte tillgång till personalpanelen.");
-        return;
+        showMessage("Kunde inte kontrollera personalbehörigheten. Databasmigrationen kanske inte har körts ännu.");
+        console.error("Staff membership lookup failed:", error.message);
     }
-    showDashboard(session.user);
 }
 
 function setWorking(button, working, label) {
