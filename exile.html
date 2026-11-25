@@ -272,6 +272,40 @@
     <!-- Vänd spelkorten med klick, Enter eller mellanslag -->
     <script>
         const exileKortband = document.querySelector(".exile-card-band");
+        const exileKortTrack = exileKortband?.querySelector(".exile-card-track");
+
+        // Skapa tillräckligt många identiska grupper för att hela skärmen förblir fylld.
+        function fyllKortband() {
+            if (!exileKortband || !exileKortTrack) return;
+            const originalGrupp = exileKortTrack.querySelector(".exile-card-group");
+            if (!originalGrupp) return;
+            const gruppBredd = originalGrupp.getBoundingClientRect().width;
+            if (!gruppBredd) return;
+
+            exileKortTrack.style.animation = "none";
+            while (exileKortTrack.children.length > 1) {
+                exileKortTrack.lastElementChild.remove();
+            }
+
+            const minBredd = exileKortband.clientWidth + gruppBredd;
+            const antalGrupper = Math.ceil(minBredd / gruppBredd) + 1;
+            for (let i = 1; i < antalGrupper; i++) {
+                const kopia = originalGrupp.cloneNode(true);
+                kopia.setAttribute("aria-hidden", "true");
+                kopia.querySelectorAll("button").forEach(knapp => {
+                    knapp.tabIndex = -1;
+                });
+                exileKortTrack.appendChild(kopia);
+            }
+
+            // Flytta precis en kortgrupp och upprepa sedan utan synligt mellanrum.
+            exileKortTrack.style.setProperty("--exile-loop-distance", "-" + gruppBredd + "px");
+            exileKortTrack.style.animation = "";
+        }
+
+        fyllKortband();
+        window.addEventListener("resize", fyllKortband);
+
         exileKortband?.addEventListener("click", event => {
             const kort = event.target.closest(".exile-flip-card");
             if (!kort || !exileKortband.contains(kort)) return;
