@@ -57,6 +57,10 @@ document.addEventListener("DOMContentLoaded", () => {
         popup.hidden = false;
         dialog.focus();
         form.reset();
+        // Gör reCAPTCHA redo för nästa registrering.
+        if (window.grecaptcha && typeof window.grecaptcha.reset === "function") {
+            try { window.grecaptcha.reset(); } catch (error) { /* widgeten är inte laddad */ }
+        }
     }
 
     closeButton.addEventListener("click", closePopup);
