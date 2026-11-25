@@ -1,0 +1,4 @@
+# Stripe webhook-anrop har ingen Supabase-användar-JWT.
+# Signaturen valideras i själva funktionen med STRIPE_WEBHOOK_SIGNING_SECRET.
+[functions.stripe-orders]
+verify_jwt = false
