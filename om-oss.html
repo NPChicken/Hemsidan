@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Om oss | SpinRoll UF</title>
     <link rel="stylesheet" href="style-om-oss.css">
+    <link rel="stylesheet" href="https://sibforms.com/forms/end-form/build/sib-styles.css">
     <link rel="stylesheet" href="footer.css">
 </head>
 
@@ -239,18 +240,49 @@
             <section>
                 <h2>Nyhetsbrev</h2>
                 <p>Få nyheter om Exile och SpinRoll UF.</p>
-                <form method="POST" action="https://af36d876.sibforms.com/serve/MUIFAOG-b0QKm3M3pDNDpLhLX-ugaO2yENql6vDGOIvn5oX87ZIbWqXPOmYbuO2uMygLgJFtSSFdXLPRXASgMmmhrycAx6N2xEF0QpjDxNHADZvSMejjNV58OMmoy81viOS4nvJ1RtY8iFwKsU2b6RJWYk7XX_jby45fgd4bJ4D6qcFnXB8j_MFwisQnv_LgwiG2a6hck9qVXx9WOg==" class="footer-newsletter">
-                    <label for="footer-email">E-postadress</label>
-                    <input id="footer-email" name="EMAIL" type="email" autocomplete="email" placeholder="din@epost.se" required>
-                    <label class="footer-consent">
-                        <input type="checkbox" name="OPT_IN" value="1" required>
-                        <span>Jag samtycker till att SpinRoll UF skickar nyhetsbrev till min e-postadress.</span>
-                    </label>
-                    <div hidden aria-hidden="true"><input type="text" name="email_address_check" value="" tabindex="-1" autocomplete="off"></div>
-                    <input type="hidden" name="locale" value="en">
-                    <button type="submit">Prenumerera</button>
-                    <p class="footer-note">Vi använder Brevo för att hantera nyhetsbrev. Du kan avregistrera dig via länken i varje utskick.</p>
-                </form>
+                <div id="sib-form-container" class="sib-form-container">
+                    <div id="success-message" class="sib-form-message-panel" aria-live="polite">
+                        <span class="sib-form-message-panel__inner-text">Din prenumeration har registrerats.</span>
+                    </div>
+                    <div id="error-message" class="sib-form-message-panel" aria-live="polite">
+                        <span class="sib-form-message-panel__inner-text">Det gick inte att registrera din e-postadress. Försök igen.</span>
+                    </div>
+                    <div id="sib-container">
+                        <form id="sib-form" method="POST" action="https://af36d876.sibforms.com/serve/MUIFAOG-b0QKm3M3pDNDpLhLX-ugaO2yENql6vDGOIvn5oX87ZIbWqXPOmYbuO2uMygLgJFtSSFdXLPRXASgMmmhrycAx6N2xEF0QpjDxNHADZvSMejjNV58OMmoy81viOS4nvJ1RtY8iFwKsU2b6RJWYk7XX_jby45fgd4bJ4D6qcFnXB8j_MFwisQnv_LgwiG2a6hck9qVXx9WOg==" class="footer-newsletter" data-type="subscription">
+                            <div class="sib-input sib-form-block">
+                                <div class="form__entry entry_block">
+                                    <div class="form__label-row">
+                                        <label for="footer-email">E-postadress</label>
+                                        <div class="entry__field">
+                                            <input class="input" id="footer-email" name="EMAIL" type="email" autocomplete="email" placeholder="din@epost.se" data-required="true" required>
+                                        </div>
+                                    </div>
+                                    <label class="entry__error entry__error--primary" aria-live="polite"></label>
+                                </div>
+                            </div>
+                            <div class="sib-optin sib-form-block" data-required="true">
+                                <div class="form__entry entry_mcq">
+                                    <div class="form__label-row">
+                                        <label class="footer-consent">
+                                            <input type="checkbox" name="OPT_IN" value="1" class="input_replaced" required>
+                                            <span>Jag samtycker till att SpinRoll UF skickar nyhetsbrev till min e-postadress.</span>
+                                        </label>
+                                    </div>
+                                    <label class="entry__error entry__error--primary" aria-live="polite"></label>
+                                </div>
+                            </div>
+                            <div class="sib-form-block">
+                                <button class="sib-form-block__button sib-form-block__button-with-loader" type="submit">
+                                    <svg class="icon clickable__icon progress-indicator__icon sib-hide-loader-icon" viewBox="0 0 512 512" aria-hidden="true"><path d="M460.116 373.846l-20.823-12.022c-5.541-3.199-7.54-10.159-4.663-15.874 30.137-59.886 28.343-189.946-5.386-189.946-33.641-58.394-94.896-95.833-161.827-99.676C261.028 55.961 256 50.751 256 44.352V20.309c0-6.904 5.808-12.337 12.703-11.982 83.556 4.306 160.163 50.864 202.11 123.677 42.063 72.696 44.079 162.316 6.031 236.832-3.14 6.148-10.75 8.461-16.728 5.01z"/></svg>
+                                    Prenumerera
+                                </button>
+                            </div>
+                            <div class="footer-honeypot" aria-hidden="true"><input type="text" name="email_address_check" value="" tabindex="-1" autocomplete="off"></div>
+                            <input type="hidden" name="locale" value="en">
+                            <p class="footer-note">Vi använder Brevo för att hantera nyhetsbrev. Du kan avregistrera dig via länken i varje utskick.</p>
+                        </form>
+                    </div>
+                </div>
             </section>
             <section>
                 <h2>Kontakt &amp; information</h2>
@@ -279,5 +311,16 @@
         });
     </script>
 
+    <!-- Brevos formulärhantering och SpinRoll-popup -->
+    <script>
+        window.LOCALE = "en";
+        window.EMAIL_INVALID_MESSAGE = "Ange en giltig e-postadress.";
+        window.REQUIRED_ERROR_MESSAGE = "Det här fältet måste fyllas i.";
+        window.GENERIC_INVALID_MESSAGE = "Kontrollera uppgifterna och försök igen.";
+        window.translation = {common: {selectedList: "{quantity} lista vald", selectedLists: "{quantity} listor valda"}};
+        window.AUTOHIDE = false;
+    </script>
+    <script defer src="https://sibforms.com/forms/end-form/build/main.js"></script>
+    <script defer src="footer.js"></script>
 </body>
 </html>
