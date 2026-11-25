@@ -514,6 +514,21 @@ button.kop-knapp {
     opacity: 0.22;
     pointer-events: none;
     z-index: 0;
+
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 8%,
+        black 18%,
+        black 100%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 8%,
+        black 18%,
+        black 100%
+    );
 }
 
 /* Vänster sida */
