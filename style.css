@@ -210,11 +210,9 @@ body {
 /* Logga på startsidan */
 .logga-container {
     position: absolute;
-    top: 72%;
+    top: 58%;
     left: 50%;
-    transform: translate(-50%, -50%) translateY(var(--spinroll-logo-scroll, 0px));
-    opacity: var(--spinroll-logo-opacity, 1);
-    will-change: transform, opacity;
+    transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 2;
     width: min(90%, 800px);
@@ -234,7 +232,7 @@ body {
 @media (max-width: 650px) {
     .logga-container {
         width: 80%;
-        top: 66%;
+        top: 55%;
     }
 }
 
