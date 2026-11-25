@@ -491,6 +491,9 @@ body {
 /* Mörkröda sidobalkar på Om oss-sidan */
 body {
     background-color: #580a17;
+}
+
+main {
     padding-left: 5%;
     padding-right: 5%;
 }
@@ -504,7 +507,7 @@ body {
 
 /* Smalare balkar på mobil */
 @media (max-width: 650px) {
-    body {
+    main {
         padding-left: 12px;
         padding-right: 12px;
     }
