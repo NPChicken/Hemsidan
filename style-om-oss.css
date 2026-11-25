@@ -491,6 +491,9 @@ body {
 /* Mörkröda sidobalkar på Om oss-sidan */
 body {
     background-color: #580a17;
+}
+
+main {
     padding-left: 5%;
     padding-right: 5%;
 }
@@ -504,123 +507,85 @@ body {
 
 /* Smalare balkar på mobil */
 @media (max-width: 650px) {
-    body {
+    main {
         padding-left: 12px;
         padding-right: 12px;
     }
 }
 
 
-/* ============================= */
-/* PRODUKTINFORMATION            */
-/* ============================= */
-
-.produktinformation {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 30px 30px 100px;
-    font-family: Arial, sans-serif;
-}
-
-/* Fyra snabbfaktarutor */
-.snabbfakta {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.fakta-ruta {
-    background-color: #f2c99e;
-    color: #580a17;
-    border-radius: 16px;
-    padding: 30px 15px;
-    text-align: center;
+/* Stilren kundvagnsikon */
+#kundvagn-knapp {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 180px;
+    gap: 10px;
 }
 
-.fakta-ikon {
-    font-size: 32px;
-    margin-bottom: 15px;
+#kundvagn-knapp svg {
+    display: block;
+    width: 25px;
+    height: 25px;
+    flex-shrink: 0;
 }
 
-.fakta-ruta h3 {
-    font-size: 17px;
-    margin: 0 0 10px;
+
+/* Om oss-intro: kompakt rubrikgrupp runt loggan */
+.om-oss-kort {
+    text-align: center;
+    padding: 38px 40px 42px;
 }
 
-.fakta-ruta p {
-    font-size: 20px;
-    font-weight: bold;
-    margin: 0;
+.om-oss-kort .overrubrik {
+    margin-bottom: 0;
 }
 
-/* Beskrivning och komponenter */
-.informationsruta {
-    background-color: #f2c99e;
-    color: #580a17;
-    border-radius: 16px;
-    padding: 35px 40px;
-    margin-bottom: 30px;
+.om-oss-kort .om-oss-logga {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: -28px auto -30px;
 }
 
-.informationsruta h2 {
-    font-size: 32px;
-    margin: 0 0 20px;
+.om-oss-kort .om-oss-logga img {
+    display: block;
+    width: min(100%, 460px);
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
 }
 
-.informationsruta p {
-    font-size: 17px;
-    line-height: 1.8;
-    margin: 0 0 15px;
+.om-oss-kort h2 {
+    margin: 0 0 14px;
 }
 
-.komponentlista {
-    padding-left: 25px;
-    font-size: 17px;
-    line-height: 2;
+.om-oss-kort p {
+    margin: 0 auto 24px;
 }
 
-/* Surfplatta */
-@media (max-width: 850px) {
-    .snabbfakta {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Mobil */
-@media (max-width: 500px) {
-    .produktinformation {
-        padding: 20px 15px 60px;
+@media (max-width: 650px) {
+    .om-oss-kort {
+        padding: 40px 20px 34px;
     }
 
-    .snabbfakta {
-        gap: 12px;
+    .om-oss-kort .overrubrik {
+        margin-bottom: 0;
+        letter-spacing: 2px;
     }
 
-    .fakta-ruta {
-        padding: 20px 10px;
-        min-height: 150px;
+    .om-oss-kort .om-oss-logga {
+        margin: -16px auto -20px;
     }
 
-    .fakta-ruta p {
-        font-size: 16px;
+    .om-oss-kort .om-oss-logga img {
+        width: min(100%, 360px);
     }
 
-    .informationsruta {
-        padding: 25px 20px;
-    }
-
-    .informationsruta h2 {
-        font-size: 26px;
+    .om-oss-kort p {
+        margin-bottom: 22px;
     }
 }
-
 
 /* JÄMN PLACERING AV PERSONKORT */
 
