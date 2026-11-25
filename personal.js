@@ -31,12 +31,127 @@ function showMessage(message = "", kind = "error") {
 }
 
 function showAuthView(id) {
+    orderFetchSequence++;
     $("auth-layout").hidden = false;
     $("staff-dashboard").hidden = true;
     $("auth-loading").hidden = true;
     views.forEach(view => { $(view).hidden = view !== id; });
     showMessage();
 }
+
+function element(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = String(text);
+    return node;
+}
+
+function kronor(ore, currency = "sek") {
+    try {
+        return new Intl.NumberFormat("sv-SE", {
+            style: "currency", currency: String(currency).toUpperCase(),
+            maximumFractionDigits: 2
+        }).format((Number(ore) || 0) / 100);
+    } catch {
+        return String(ore) + " öre";
+    }
+}
+
+function safeDate(date) {
+    if (!date) return "Okänt datum";
+    return new Intl.DateTimeFormat("sv-SE", {
+        dateStyle: "medium", timeStyle: "short"
+    }).format(new Date(date));
+}
+
+function buildOrderCard(order) {
+    const card = element("article", "order-card");
+    const heading = element("div", "order-card-top");
+    const summary = element("div", "order-summary");
+    const id = element("strong", "order-reference", "Order · " +
+        String(order.stripe_checkout_session_id).slice(-10).toUpperCase());
+    const date = element("span", "order-date", safeDate(order.stripe_created_at || order.created_at));
+    summary.append(id, date);
+
+    const meta = element("div", "order-meta");
+    const name = element("strong", "", order.customer_name || "Namn saknas");
+    const amount = element("strong", "order-amount", kronor(order.amount_total, order.currency));
+    meta.append(name, amount);
+    heading.append(summary, meta);
+
+    const details = element("details", "order-details");
+    const toggle = element("summary", "", "Visa kunduppgifter och produkter");
+    const content = element("div", "order-detail-content");
+    const emailRow = element("p", "", "E-post: ");
+    if (order.customer_email) {
+        const mail = element("a", "", order.customer_email);
+        mail.href = "mailto:" + order.customer_email;
+        emailRow.appendChild(mail);
+    } else {
+        emailRow.appendChild(document.createTextNode("Saknas"));
+    }
+    const status = element("p", "", "Betalning: " +
+        (order.payment_status === "paid" ? "Betald" : order.payment_status) +
+        " · Leverans: " + ({
+            new: "Ny", packing: "Packas", shipped: "Skickad", cancelled: "Avbruten"
+        }[order.fulfillment_status] || order.fulfillment_status));
+    const shipping = [
+        order.shipping_name, order.shipping_address_line1,
+        order.shipping_address_line2,
+        [order.shipping_postal_code, order.shipping_city].filter(Boolean).join(" "),
+        order.shipping_country
+    ].filter(Boolean).join(", ");
+    const shippingRow = element("p", "", "Leveransadress: " + (shipping || "Ej angiven av kassan"));
+    const products = element("ul", "order-products");
+    for (const item of order.order_items || []) {
+        products.appendChild(element("li", "",
+            (item.quantity || 1) + " × " + item.product_name +
+            " · " + kronor(item.unit_amount, item.currency) + "/st"));
+    }
+    content.append(emailRow, shippingRow, status, products);
+    details.append(toggle, content);
+    card.append(heading, details);
+    return card;
+}
+
+let orderFetchSequence = 0;
+async function loadOrders() {
+    const seq = ++orderFetchSequence;
+    const button = $("refresh-orders");
+    const message = $("orders-message");
+    button.disabled = true;
+    message.hidden = false;
+    message.textContent = "Hämtar beställningar…";
+    $("orders-list").replaceChildren();
+    try {
+        const { data, error } = await supabase.from("orders")
+            .select("id, stripe_checkout_session_id, stripe_created_at, created_at, customer_name, customer_email, shipping_name, shipping_address_line1, shipping_address_line2, shipping_postal_code, shipping_city, shipping_country, amount_total, currency, payment_status, fulfillment_status, order_items (product_name, quantity, unit_amount, currency)")
+            .eq("stripe_mode", "test")
+            .order("created_at", { ascending: false })
+            .range(0, 49);
+        if (error) throw error;
+        if (seq !== orderFetchSequence || $("staff-dashboard").hidden) return;
+        const orders = data || [];
+        $("order-count").textContent = orders.length === 0 ? "0 ordrar" :
+            orders.length + (orders.length === 50 ? "+ ordrar" : " ordrar");
+        if (!orders.length) {
+            message.textContent = "Inga testordrar än. När webhooken är aktiv och en testbetalning görs visas den här.";
+            return;
+        }
+        message.hidden = true;
+        const fragment = document.createDocumentFragment();
+        orders.forEach(order => fragment.appendChild(buildOrderCard(order)));
+        $("orders-list").appendChild(fragment);
+    } catch (error) {
+        if (seq !== orderFetchSequence) return;
+        message.textContent = "Kunde inte hämta beställningar. Kontrollera behörigheten och försök igen.";
+        $("order-count").textContent = "Ej tillgängligt";
+        console.error("Order list request failed:", error.message);
+    } finally {
+        if (seq === orderFetchSequence) button.disabled = false;
+    }
+}
+$("refresh-orders").addEventListener("click", () => { void loadOrders(); });
 
 function showDashboard(user) {
     const email = user.email || "";
@@ -46,6 +161,7 @@ function showDashboard(user) {
     $("auth-layout").hidden = true;
     $("staff-dashboard").hidden = false;
     showMessage();
+    void loadOrders();
 }
 
 async function renderSession(session) {
