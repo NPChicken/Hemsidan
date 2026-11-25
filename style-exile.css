@@ -255,3 +255,45 @@ button.kop-knapp {
  .exile-detail-card { padding: 24px 20px; }
  .exile-purchase { gap: 16px; }
 }
+
+
+/* Kortbandet på Exile – oavbruten rörelse utan text ovanpå */
+.exile-card-band {
+    width: 100%;
+    overflow: hidden;
+    margin: 4px auto 35px;
+    padding: 12px 0;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+}
+.exile-card-track {
+    display: flex;
+    width: max-content;
+    animation: exile-card-scroll 36s linear infinite;
+    will-change: transform;
+}
+.exile-card-group {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 20px;
+    padding-right: 20px;
+}
+.exile-card-group img {
+    display: block;
+    width: clamp(96px, 13vw, 150px);
+    height: clamp(135px, 19vw, 210px);
+    object-fit: contain;
+    flex-shrink: 0;
+}
+@keyframes exile-card-scroll {
+    to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .exile-card-track { animation: none; }
+    .exile-card-band { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+}
+@media (max-width: 540px) {
+    .exile-card-band { margin-bottom: 22px; }
+    .exile-card-group { gap: 12px; padding-right: 12px; }
+}
