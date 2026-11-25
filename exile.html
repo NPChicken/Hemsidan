@@ -306,12 +306,24 @@
         fyllKortband();
         window.addEventListener("resize", fyllKortband);
 
+        // Vänd tillbaka automatiskt efter 1,5 sekunder. Ett nytt klick startar om tiden.
+        const kortTimers = new WeakMap();
+
         exileKortband?.addEventListener("click", event => {
             const kort = event.target.closest(".exile-flip-card");
             if (!kort || !exileKortband.contains(kort)) return;
-            const vant = kort.classList.toggle("is-flipped");
-            kort.setAttribute("aria-pressed", String(vant));
-            kort.setAttribute("aria-label", (vant ? "Vänd tillbaka" : "Vänd kort") + ": " + kort.dataset.cardName);
+
+            clearTimeout(kortTimers.get(kort));
+            kort.classList.add("is-flipped");
+            kort.setAttribute("aria-pressed", "true");
+            kort.setAttribute("aria-label", "Vänd tillbaka: " + kort.dataset.cardName);
+
+            kortTimers.set(kort, setTimeout(() => {
+                kort.classList.remove("is-flipped");
+                kort.setAttribute("aria-pressed", "false");
+                kort.setAttribute("aria-label", "Vänd kort: " + kort.dataset.cardName);
+                kortTimers.delete(kort);
+            }, 1500));
         });
     </script>
     <script src="kundvagn.js" defer></script>
