@@ -24,10 +24,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 <circle cx="12" cy="12" r="10"></circle>
                 <path d="m7 12 3.5 3.5L17 9"></path>
             </svg>
-            <h2 id="spinroll-newsletter-title">Tack för din prenumeration!</h2>
+            <h2 id="spinroll-newsletter-title">Bekräfta din e-postadress</h2>
             <p id="spinroll-newsletter-description">
-                Du är nu registrerad för SpinRolls nyhetsbrev.
-                Håll utkik efter nyheter om Exile och våra framtida spel.
+                Tack för att du vill följa SpinRoll! Vi har tagit emot din anmälan.
+                Öppna mejlet från oss och klicka på bekräftelselänken
+                för att slutföra din prenumeration. Kolla även skräpposten
+                om du inte hittar mejlet.
             </p>
             <button type="button" class="spinroll-newsletter-done">Stäng</button>
         </section>
