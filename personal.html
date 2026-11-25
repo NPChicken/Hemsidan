@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Inloggning för SpinRoll UF:s personal.">
+    <title>Personal | SpinRoll UF</title>
+    <link rel="stylesheet" href="personal.css">
+    <script type="module" src="personal.js"></script>
+</head>
+<body>
+    <header class="personal-header">
+        <a class="personal-logo" href="index.html" aria-label="SpinRoll UF – startsidan">
+            <img src="pictures/logo.png" alt="SpinRoll UF">
+        </a>
+        <span class="personal-header-tag"><span class="status-dot" aria-hidden="true"></span>Intern portal</span>
+    </header>
+
+    <main class="personal-main">
+        <section class="auth-layout" id="auth-layout" aria-labelledby="login-title">
+            <div class="auth-intro">
+                <p class="eyebrow">SPINROLL UF <span class="eyebrow-line"></span> PERSONAL</p>
+                <h1>Bakom <em>kulisserna.</em></h1>
+                <p>En plats för oss som gör SpinRoll möjligt. Logga in för att komma till personalpanelen.</p>
+                <div class="auth-intro-foot"><span aria-hidden="true">✳</span> Bara för personal</div>
+            </div>
+            <div class="auth-card">
+                <div id="auth-loading" class="auth-loading" role="status">Kontrollerar inloggning…</div>
+
+                <div id="login-view" hidden>
+                    <div class="card-topline"><span>01 / INLOGGNING</span><span class="card-ornament" aria-hidden="true">✦</span></div>
+                    <h2 id="login-title">Välkommen tillbaka.</h2>
+                    <p class="card-copy">Använd ditt personliga personalkonto för att fortsätta.</p>
+                    <form id="login-form">
+                        <label for="login-email">E-postadress</label>
+                        <input id="login-email" type="email" name="email" placeholder="namn@hitachigymnasiet.se" autocomplete="username" required>
+                        <label for="login-password">Lösenord</label>
+                        <input id="login-password" type="password" name="password" placeholder="Ditt lösenord" autocomplete="current-password" minlength="6" required>
+                        <button class="primary-button" id="login-submit" type="submit">Logga in <span aria-hidden="true">↗</span></button>
+                    </form>
+                    <button class="text-button" type="button" id="show-forgot">Glömt lösenordet?</button>
+                </div>
+
+                <div id="forgot-view" hidden>
+                    <div class="card-topline"><span>02 / ÅTERSTÄLLNING</span><span class="card-ornament" aria-hidden="true">✦</span></div>
+                    <h2>Återställ lösenord.</h2>
+                    <p class="card-copy">Ange mejladressen som är kopplad till ditt personalkonto. Du får en länk för att välja ett nytt lösenord.</p>
+                    <form id="forgot-form">
+                        <label for="forgot-email">E-postadress</label>
+                        <input id="forgot-email" type="email" autocomplete="username" required placeholder="namn@hitachigymnasiet.se">
+                        <button class="primary-button" id="forgot-submit" type="submit">Skicka återställningslänk <span aria-hidden="true">↗</span></button>
+                    </form>
+                    <button class="text-button" type="button" id="back-to-login">Tillbaka till inloggning</button>
+                </div>
+
+                <div id="recovery-view" hidden>
+                    <div class="card-topline"><span>03 / NYTT LÖSENORD</span><span class="card-ornament" aria-hidden="true">✦</span></div>
+                    <h2>Välj ett nytt lösenord.</h2>
+                    <p class="card-copy">Använd minst 12 tecken för ditt nya lösenord.</p>
+                    <form id="recovery-form">
+                        <label for="new-password">Nytt lösenord</label>
+                        <input id="new-password" type="password" autocomplete="new-password" minlength="12" required>
+                        <label for="confirm-password">Upprepa lösenordet</label>
+                        <input id="confirm-password" type="password" autocomplete="new-password" minlength="12" required>
+                        <button class="primary-button" id="recovery-submit" type="submit">Spara nytt lösenord <span aria-hidden="true">↗</span></button>
+                    </form>
+                </div>
+
+                <p class="form-message" id="auth-message" role="status" aria-live="polite" hidden></p>
+                <p class="auth-note">Ingen öppen registrering. Konton skapas av SpinRolls administratör.</p>
+            </div>
+        </section>
+
+        <section class="staff-dashboard" id="staff-dashboard" hidden aria-labelledby="dashboard-title">
+            <div class="dashboard-heading">
+                <div>
+                    <p class="eyebrow">PERSONAL / ÖVERSIKT</p>
+                    <h1 id="dashboard-title">Hej, <span id="staff-name">kollega</span><span class="accent">.</span></h1>
+                    <p class="dashboard-subtitle">Välkommen till SpinRolls interna arbetsyta.</p>
+                </div>
+                <button type="button" class="outline-button" id="logout-button">Logga ut <span aria-hidden="true">↗</span></button>
+            </div>
+            <div class="dashboard-banner">
+                <span class="banner-icon" aria-hidden="true">✦</span>
+                <div>
+                    <strong>Grunden är på plats!</strong>
+                    <p>Du är inloggad. Den här första versionen visar ingen kund- eller orderinformation. Vi kopplar på skyddade data när databasens behörigheter är konfigurerade.</p>
+                </div>
+            </div>
+            <div class="dashboard-grid" aria-label="Kommande funktioner">
+                <article class="dashboard-tile">
+                    <span class="tile-icon" aria-hidden="true">◈</span>
+                    <div class="tile-meta">01 / FÖRSÄLJNING</div>
+                    <h2>Beställningar</h2>
+                    <p>Överblick över kommande och tidigare ordrar från Stripe.</p>
+                    <span class="tile-status">Kommer senare</span>
+                </article>
+                <article class="dashboard-tile">
+                    <span class="tile-icon" aria-hidden="true">▣</span>
+                    <div class="tile-meta">02 / PRODUKTION</div>
+                    <h2>Lager</h2>
+                    <p>Håll koll på hur många spel som finns i lager.</p>
+                    <span class="tile-status">Kommer senare</span>
+                </article>
+                <article class="dashboard-tile">
+                    <span class="tile-icon" aria-hidden="true">⌁</span>
+                    <div class="tile-meta">03 / TEAMET</div>
+                    <h2>Intern information</h2>
+                    <p>Samla rutiner, dokument och viktiga uppgifter.</p>
+                    <span class="tile-status">Kommer senare</span>
+                </article>
+            </div>
+            <p class="signed-in-note">Inloggad som <span id="staff-email"></span></p>
+        </section>
+    </main>
+    <footer class="personal-footer"><span>© 2026 SpinRoll UF</span><a href="index.html">Tillbaka till hemsidan ↗</a></footer>
+</body>
+</html>
