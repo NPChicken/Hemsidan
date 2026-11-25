@@ -239,10 +239,18 @@
             <section>
                 <h2>Nyhetsbrev</h2>
                 <p>Få nyheter om Exile och SpinRoll UF.</p>
-                <label for="footer-email">E-postadress</label>
-                <input id="footer-email" type="email" autocomplete="email" placeholder="din@epost.se" disabled>
-                <button type="button" disabled>Prenumerera</button>
-                <p class="footer-note">Anmälan öppnar snart.</p>
+                <form method="POST" action="https://af36d876.sibforms.com/serve/MUIFAOG-b0QKm3M3pDNDpLhLX-ugaO2yENql6vDGOIvn5oX87ZIbWqXPOmYbuO2uMygLgJFtSSFdXLPRXASgMmmhrycAx6N2xEF0QpjDxNHADZvSMejjNV58OMmoy81viOS4nvJ1RtY8iFwKsU2b6RJWYk7XX_jby45fgd4bJ4D6qcFnXB8j_MFwisQnv_LgwiG2a6hck9qVXx9WOg==" class="footer-newsletter">
+                    <label for="footer-email">E-postadress</label>
+                    <input id="footer-email" name="EMAIL" type="email" autocomplete="email" placeholder="din@epost.se" required>
+                    <label class="footer-consent">
+                        <input type="checkbox" name="OPT_IN" value="1" required>
+                        <span>Jag samtycker till att SpinRoll UF skickar nyhetsbrev till min e-postadress.</span>
+                    </label>
+                    <div hidden aria-hidden="true"><input type="text" name="email_address_check" value="" tabindex="-1" autocomplete="off"></div>
+                    <input type="hidden" name="locale" value="en">
+                    <button type="submit">Prenumerera</button>
+                    <p class="footer-note">Vi använder Brevo för att hantera nyhetsbrev. Du kan avregistrera dig via länken i varje utskick.</p>
+                </form>
             </section>
             <section>
                 <h2>Kontakt &amp; information</h2>
