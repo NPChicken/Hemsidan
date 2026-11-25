@@ -343,10 +343,7 @@ button.kop-knapp {
 }
 .exile-card-front { transform: rotateY(180deg); background: #26050b; }
 .exile-card-front img { display: block; width: 100%; height: 100%; object-fit: contain; }
-/* Pausa på hover, vid tangentbordsfokus och när något kort är vänt. */
-.exile-card-band:hover .exile-card-track,
-.exile-card-band:focus-within .exile-card-track,
-.exile-card-band:has(.is-flipped) .exile-card-track { animation-play-state: paused; }
+/* Bandet fortsätter rulla även när korten vänds eller pekaren är över dem. */
 @keyframes exile-kort-rullar { to { transform: translateX(-50%); } }
 @media (max-width: 540px) {
     .exile-card-band { margin-top: 35px; }
