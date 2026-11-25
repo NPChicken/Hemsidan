@@ -204,3 +204,15 @@
         margin-bottom: -10px;
     }
 }
+
+/* Kontaktuppgifter i sidfoten */
+.spinroll-footer .footer-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-style: normal;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+.spinroll-footer .footer-contact strong { color: #fff; }
+.spinroll-footer .footer-contact span { color: #ddd; }
