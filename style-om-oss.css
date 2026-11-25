@@ -530,51 +530,52 @@ main {
 }
 
 
-/* Om oss-intro: centrerad logga och jämna avstånd */
+/* Om oss-intro: kompakt rubrikgrupp runt loggan */
 .om-oss-kort {
     text-align: center;
+    padding: 38px 40px 42px;
 }
 
 .om-oss-kort .overrubrik {
-    margin-bottom: 6px;
+    margin-bottom: 0;
 }
 
 .om-oss-kort .om-oss-logga {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 auto 10px;
     width: 100%;
+    margin: -28px auto -30px;
 }
 
 .om-oss-kort .om-oss-logga img {
     display: block;
-    width: min(100%, 480px);
+    width: min(100%, 460px);
     max-width: 100%;
     height: auto;
     object-fit: contain;
 }
 
 .om-oss-kort h2 {
-    margin-bottom: 16px;
+    margin: 0 0 14px;
 }
 
 .om-oss-kort p {
-    margin: 0 auto 28px;
+    margin: 0 auto 24px;
 }
 
 @media (max-width: 650px) {
     .om-oss-kort {
-        padding: 42px 22px;
+        padding: 40px 20px 34px;
     }
 
     .om-oss-kort .overrubrik {
-        margin-bottom: 5px;
+        margin-bottom: 0;
         letter-spacing: 2px;
     }
 
     .om-oss-kort .om-oss-logga {
-        margin-bottom: 8px;
+        margin: -16px auto -20px;
     }
 
     .om-oss-kort .om-oss-logga img {
@@ -582,10 +583,9 @@ main {
     }
 
     .om-oss-kort p {
-        margin-bottom: 25px;
+        margin-bottom: 22px;
     }
 }
-
 
 /* JÄMN PLACERING AV PERSONKORT */
 
