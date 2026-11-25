@@ -54,3 +54,134 @@
 .spinroll-footer .footer-consent input { width: 18px; height: 18px; flex: 0 0 18px; margin: 2px 0 0; accent-color: #f2c99e; }
 .spinroll-footer button:not(:disabled) { cursor: pointer; }
 .spinroll-footer button:not(:disabled):hover { background: #fff; }
+
+/* Brevo-formuläret ska behålla SpinRolls befintliga sidfotsdesign. */
+.spinroll-footer #sib-form-container,
+.spinroll-footer #sib-container {
+    background: transparent !important;
+    border: 0 !important;
+    color: inherit;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    box-shadow: none;
+}
+.spinroll-footer .footer-newsletter .entry__field { background: transparent; border: 0; }
+.spinroll-footer .footer-newsletter .entry__error:empty { display: none; }
+.spinroll-footer .footer-newsletter .entry__error:not(:empty) {
+    display: block;
+    margin-top: 6px;
+    color: #ffd6d6;
+    font-size: 13px;
+}
+.spinroll-footer .footer-newsletter .footer-consent {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.spinroll-footer .footer-newsletter .footer-consent input[type="checkbox"] {
+    appearance: auto;
+    -webkit-appearance: checkbox;
+    opacity: 1;
+    position: static;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    flex: 0 0 18px;
+}
+.spinroll-footer .footer-honeypot {
+    position: absolute;
+    overflow: hidden;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+}
+.spinroll-footer .footer-newsletter .sib-form-block__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f2c99e;
+    color: #580a17;
+}
+.spinroll-footer .footer-newsletter .progress-indicator__icon {
+    width: 16px;
+    height: 16px;
+}
+.spinroll-footer #success-message.sib-form-message-panel--active {
+    display: none !important;
+}
+.spinroll-footer #error-message.sib-form-message-panel--active {
+    display: block;
+    background: #3a1019;
+    color: #fff;
+    padding: 10px;
+    border: 1px solid #a91e3d;
+    border-radius: 8px;
+    margin: 0 0 15px;
+}
+
+/* Bekräftelsepopup: läggs i body och påverkar inte sidfotens layout. */
+.spinroll-newsletter-popup[hidden] { display: none !important; }
+.spinroll-newsletter-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+.spinroll-newsletter-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .72);
+}
+.spinroll-newsletter-dialog {
+    position: relative;
+    width: min(100%, 420px);
+    max-height: 90vh;
+    overflow: auto;
+    padding: 36px 30px 30px;
+    border: 1px solid #6a4147;
+    border-radius: 18px;
+    background: #171717;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+.spinroll-newsletter-dialog h2 {
+    color: #f2c99e;
+    font-size: 24px;
+    margin: 14px 0;
+}
+.spinroll-newsletter-dialog p {
+    color: #eee;
+    font-size: 15px;
+    line-height: 1.7;
+}
+.spinroll-newsletter-check { color: #f2c99e; display: block; margin: 0 auto; }
+.spinroll-newsletter-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    padding: 8px;
+    border: 0;
+    background: transparent;
+    color: #f2c99e;
+    font-size: 27px;
+    cursor: pointer;
+}
+.spinroll-newsletter-done {
+    margin-top: 18px;
+    border: none;
+    padding: 13px 30px;
+    border-radius: 8px;
+    background: #a91e3d;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.spinroll-newsletter-done:hover { background: #c52b4e; }
