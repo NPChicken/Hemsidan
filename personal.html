@@ -84,8 +84,8 @@
             <div class="dashboard-banner">
                 <span class="banner-icon" aria-hidden="true">✦</span>
                 <div>
-                    <strong>Grunden är på plats!</strong>
-                    <p>Du är inloggad. Den här första versionen visar ingen kund- eller orderinformation. Vi kopplar på skyddade data när databasens behörigheter är konfigurerade.</p>
+                    <strong>Orderhantering · testläge</strong>
+                    <p>Beställningar som har bekräftats av Stripe visas här efter att webb­hooken aktiverats. Endast aktiv personal har behörighet att läsa dem.</p>
                 </div>
             </div>
             <div class="dashboard-grid" aria-label="Kommande funktioner">
@@ -93,8 +93,8 @@
                     <span class="tile-icon" aria-hidden="true">◈</span>
                     <div class="tile-meta">01 / FÖRSÄLJNING</div>
                     <h2>Beställningar</h2>
-                    <p>Överblick över kommande och tidigare ordrar från Stripe.</p>
-                    <span class="tile-status">Kommer senare</span>
+                    <p>Bekräftade testbetalningar från Stripe.</p>
+                    <span class="tile-status" id="order-count">Laddar…</span>
                 </article>
                 <article class="dashboard-tile">
                     <span class="tile-icon" aria-hidden="true">▣</span>
@@ -111,6 +111,18 @@
                     <span class="tile-status">Kommer senare</span>
                 </article>
             </div>
+            <section class="staff-orders" aria-labelledby="staff-orders-heading">
+                <div class="orders-heading">
+                    <div>
+                        <p class="eyebrow">BETALNINGAR / TESTLÄGE</p>
+                        <h2 id="staff-orders-heading">Senaste beställningarna</h2>
+                    </div>
+                    <button type="button" id="refresh-orders" class="outline-button">Uppdatera <span aria-hidden="true">↻</span></button>
+                </div>
+                <p id="orders-message" class="orders-message" role="status" aria-live="polite">Hämtar beställningar…</p>
+                <div id="orders-list" class="orders-list"></div>
+                <p class="orders-caption">Visar högst 50 senaste testordrar. Orderstatus kan ännu inte ändras här.</p>
+            </section>
             <p class="signed-in-note">Inloggad som <span id="staff-email"></span></p>
         </section>
     </main>
