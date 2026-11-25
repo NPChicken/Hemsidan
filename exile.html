@@ -334,6 +334,69 @@
             }, 1500));
         });
     </script>
+    <!-- Samma magneteffekt som startsidans köpknapp -->
+    <script>
+        (() => {
+            const knapp = document.querySelector(".exile-buy");
+            if (!knapp || !window.matchMedia("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)").matches) return;
+
+            const radie = 150; // Avstånd från knappens mitt där magneten börjar påverka
+            const maxRorelse = 9; // Maximal förflyttning i pixlar
+            let x = 0, y = 0, malX = 0, malY = 0;
+            let animation = null;
+
+            function animera() {
+                x += (malX - x) * 0.12;
+                y += (malY - y) * 0.12;
+                if (Math.abs(x - malX) < 0.05 && Math.abs(y - malY) < 0.05) {
+                    x = malX;
+                    y = malY;
+                }
+                knapp.style.setProperty("--magnet-x", x + "px");
+                knapp.style.setProperty("--magnet-y", y + "px");
+                if (x !== malX || y !== malY) {
+                    animation = requestAnimationFrame(animera);
+                } else {
+                    animation = null;
+                }
+            }
+
+            function startaAnimation() {
+                if (animation === null) animation = requestAnimationFrame(animera);
+            }
+
+            function uppdateraMagnet(event) {
+                const ruta = knapp.getBoundingClientRect();
+                // Kompensera för knappens nuvarande förflyttning så magnetens centrum är stabilt.
+                const mittenX = ruta.left + ruta.width / 2 - x;
+                const mittenY = ruta.top + ruta.height / 2 - y;
+                const dx = event.clientX - mittenX;
+                const dy = event.clientY - mittenY;
+                const avstand = Math.hypot(dx, dy);
+
+                if (avstand < radie) {
+                    const styrka = Math.pow(1 - avstand / radie, 1.3);
+                    malX = Math.max(-maxRorelse, Math.min(maxRorelse, dx * styrka * 0.22));
+                    malY = Math.max(-maxRorelse, Math.min(maxRorelse, dy * styrka * 0.22));
+                } else {
+                    malX = 0;
+                    malY = 0;
+                }
+                startaAnimation();
+            }
+
+            function aterstall() {
+                malX = 0;
+                malY = 0;
+                startaAnimation();
+            }
+
+            window.addEventListener("pointermove", uppdateraMagnet, { passive: true });
+            window.addEventListener("scroll", aterstall, { passive: true });
+            window.addEventListener("blur", aterstall);
+        })();
+    </script>
+
     <script src="kundvagn.js" defer></script>
     <!-- Brevos formulärhantering och SpinRoll-popup -->
     <script>
