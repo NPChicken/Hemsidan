@@ -42,6 +42,7 @@
         <section class="exile-product" aria-labelledby="exile-om">
             <div class="exile-model">
                 <model-viewer
+                    id="exile-modell"
                     src="https://spinroll.se/box.glb"
                     alt="3D-modell av Exiles spelbox"
                     camera-orbit="0deg 75deg 120%"
@@ -169,6 +170,25 @@
 
 
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js"></script>
+    <!-- Samma scrollstyrda kamerarotation som på startsidan -->
+    <script>
+        const exileModell = document.querySelector("#exile-modell");
+
+        function roteraExileModell() {
+            if (!exileModell) return;
+            const ruta = exileModell.getBoundingClientRect();
+            const modellMitt = ruta.top + ruta.height / 2;
+            const skarmMitt = window.innerHeight / 2;
+            const scrollPosition = (skarmMitt - modellMitt) / window.innerHeight;
+            const rotation = scrollPosition * 60;
+            exileModell.cameraOrbit = `${rotation}deg 75deg 120%`;
+        }
+
+        window.addEventListener("scroll", roteraExileModell, { passive: true });
+        window.addEventListener("resize", roteraExileModell);
+        window.addEventListener("load", roteraExileModell);
+        exileModell.addEventListener("load", roteraExileModell);
+    </script>
     <script>
         const menyknapp = document.querySelector("#menyknapp");
         const sidomeny = document.querySelector("#sidomeny");
