@@ -121,7 +121,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .kop-knapp {
+    .kop-knapp,
+    #kundvagn-knapp,
+    #till-kassan {
         transition: none;
     }
 }
@@ -264,6 +266,22 @@ img {
     padding: 12px 17px;
     font-size: 22px;
     cursor: pointer;
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Peach och vinrött byter plats på kundvagnsknappen */
+@media (hover: hover) and (pointer: fine) {
+    #kundvagn-knapp:hover {
+        background-color: #f2c99e;
+        color: #580a17;
+        border-color: #580a17;
+    }
+}
+
+#kundvagn-knapp:focus-visible,
+#till-kassan:focus-visible {
+    outline: 3px solid #f2c99e;
+    outline-offset: 4px;
 }
 
 #kundvagn-antal {
@@ -371,10 +389,14 @@ img {
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-#till-kassan:hover {
-    background: #c52b4e;
+@media (hover: hover) and (pointer: fine) {
+    #till-kassan:not(:disabled):hover {
+        background: #c52b4e;
+        box-shadow: 0 0 12px rgba(242, 201, 158, 0.18);
+    }
 }
 
 #till-kassan:disabled {
