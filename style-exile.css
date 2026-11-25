@@ -77,8 +77,30 @@ a { color: inherit; }
 .exile-description p:not(.exile-kicker):not(.exile-checkout-note) { font-size: 17px; line-height: 1.75; color: #f7e8e2; }
 .exile-purchase { margin-top: 30px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
 .exile-price { color: #fff; font-size: 32px; white-space: nowrap; }
-.exile-buy { background: #f2c99e; color: #580a17; border: 0; border-radius: 9px; padding: 16px 26px; font-weight: 800; cursor: pointer; }
+.exile-buy {
+    background: #f2c99e;
+    color: #580a17;
+    border: 0;
+    border-radius: 9px;
+    padding: 16px 26px;
+    font-weight: 800;
+    cursor: pointer;
+    --magnet-x: 0px;
+    --magnet-y: 0px;
+    transform: translate3d(var(--magnet-x), var(--magnet-y), 0) scale(1);
+    transition: background-color .25s ease, box-shadow .25s ease;
+}
 .exile-buy:hover { background: #fff; }
+@media (hover: hover) and (pointer: fine) {
+    .exile-buy:hover {
+        transform: translate3d(var(--magnet-x), var(--magnet-y), 0) scale(1.025);
+        box-shadow: 0 0 12px rgba(242, 201, 158, .18);
+    }
+}
+.exile-buy:focus-visible { outline: 3px solid #f2c99e; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) {
+    .exile-buy { transition: none; }
+}
 .exile-checkout-note { font-size: 13px; color: #e9b4c0; margin-top: 15px; }
 .exile-facts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; margin: 70px 0; }
 .exile-facts > div { padding: 26px 14px; border-radius: 15px; background: #f2c99e; text-align: center; color: #580a17; }
