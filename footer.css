@@ -216,3 +216,31 @@
 }
 .spinroll-footer .footer-contact strong { color: #fff; }
 .spinroll-footer .footer-contact span { color: #ddd; }
+
+/* En egen, luftig plats för länken till Om oss under loggan. */
+.spinroll-footer .footer-about-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 22px;
+    padding: 11px 16px;
+    border: 1px solid rgba(242, 201, 158, 0.55);
+    border-radius: 8px;
+    color: #f2c99e;
+    background: rgba(242, 201, 158, 0.05);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color .2s ease, border-color .2s ease;
+}
+.spinroll-footer .footer-about-link:hover,
+.spinroll-footer .footer-about-link:focus-visible {
+    background: rgba(242, 201, 158, 0.15);
+    border-color: #f2c99e;
+}
+.spinroll-footer .footer-about-link span {
+    font-size: 18px;
+    line-height: 1;
+}
