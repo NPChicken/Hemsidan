@@ -166,27 +166,6 @@
 
     </div>
 
-    <!-- Loggan följer scrollningen mjukt genom hero-sektionen -->
-    <script>
-        const startHero = document.querySelector(".hero-start");
-        const startLogga = document.querySelector(".logga-container");
-
-        function uppdateraStartLogga() {
-            if (!startHero || !startLogga) return;
-            const scroll = Math.max(0, -startHero.getBoundingClientRect().top);
-            const hojden = startHero.offsetHeight;
-            const andel = Math.min(scroll / Math.max(hojden, 1), 1);
-
-            /* Loggan rör sig långsammare än sidan och tonas bort mot slutet. */
-            startLogga.style.setProperty("--spinroll-logo-scroll", Math.min(scroll * 0.7, hojden * 0.55) + "px");
-            startLogga.style.setProperty("--spinroll-logo-opacity", String(Math.max(0, 1 - Math.max(0, andel - 0.50) / 0.4)));
-        }
-
-        window.addEventListener("scroll", uppdateraStartLogga, { passive: true });
-        window.addEventListener("resize", uppdateraStartLogga);
-        uppdateraStartLogga();
-    </script>
-
     <!-- Bibliotek för 3D-modellen -->
     <script
         type="module"
