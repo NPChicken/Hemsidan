@@ -257,43 +257,103 @@ button.kop-knapp {
 }
 
 
-/* Rullande Exile-kort – längst ner på produktsidan, utan text */
+/* Kant-till-kant-kortband. Varje upprepad grupp fyller minst en hel skärm. */
 .exile-card-band {
+    position: relative;
+    left: 50%;
+    width: 100vw;
+    width: 100dvw;
+    transform: translateX(-50%);
     overflow: hidden;
     margin: 54px 0 0;
-    padding: 12px 0;
-    width: 100%;
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
-    mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+    padding: 16px 0;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
 }
 .exile-card-track {
     display: flex;
     width: max-content;
-    animation: exile-kort-rullar 32s linear infinite;
+    animation: exile-kort-rullar 38s linear infinite;
     will-change: transform;
 }
 .exile-card-group {
     display: flex;
-    align-items: center;
     flex-shrink: 0;
-    gap: 22px;
-    padding-right: 22px;
+    min-width: 100vw;
+    min-width: 100dvw;
+    align-items: center;
+    justify-content: space-around;
+    gap: clamp(12px, 2.4vw, 28px);
+    padding: 0 clamp(12px, 2vw, 28px);
 }
-.exile-card-group img {
+.exile-flip-card {
+    appearance: none;
     display: block;
-    flex: 0 0 auto;
-    width: clamp(100px, 14vw, 160px);
-    height: clamp(140px, 20vw, 225px);
-    object-fit: contain;
+    width: clamp(110px, 13vw, 165px);
+    aspect-ratio: 5 / 7;
+    padding: 0;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 13px;
+    background: transparent;
+    cursor: pointer;
+    perspective: 900px;
+    -webkit-tap-highlight-color: transparent;
 }
-@keyframes exile-kort-rullar {
-    to { transform: translateX(-50%); }
+.exile-flip-card:focus-visible { outline: 3px solid #f2c99e; outline-offset: 5px; }
+.exile-flip-inner {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    transform-style: preserve-3d;
+    transition: transform .65s cubic-bezier(.2,.75,.2,1);
 }
+.exile-flip-card.is-flipped .exile-flip-inner { transform: rotateY(180deg); }
+.exile-card-back, .exile-card-front {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border-radius: inherit;
+    overflow: hidden;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+.exile-card-back {
+    color: #f2c99e;
+    border: 3px solid #f2c99e;
+    background: repeating-linear-gradient(45deg, #500712, #500712 8px, #620c1b 8px, #620c1b 16px);
+    box-shadow: inset 0 0 0 6px #580a17, inset 0 0 0 8px #b97f66, 0 8px 22px #21000766;
+}
+.exile-card-seal {
+    display: grid;
+    place-items: center;
+    width: 76%;
+    aspect-ratio: 1;
+    border: 2px solid #f2c99e;
+    border-radius: 50%;
+    background: #580a17;
+    font-family: Georgia, serif;
+    font-weight: 800;
+    font-size: clamp(15px, 2vw, 23px);
+    letter-spacing: .07em;
+    text-shadow: 0 1px 2px #000;
+}
+.exile-card-front { transform: rotateY(180deg); background: #26050b; }
+.exile-card-front img { display: block; width: 100%; height: 100%; object-fit: contain; }
+/* Pausa på hover, vid tangentbordsfokus och när något kort är vänt. */
+.exile-card-band:hover .exile-card-track,
+.exile-card-band:focus-within .exile-card-track,
+.exile-card-band:has(.is-flipped) .exile-card-track { animation-play-state: paused; }
+@keyframes exile-kort-rullar { to { transform: translateX(-50%); } }
 @media (max-width: 540px) {
     .exile-card-band { margin-top: 35px; }
-    .exile-card-group { gap: 12px; padding-right: 12px; }
+    .exile-flip-card { width: 112px; }
 }
 @media (prefers-reduced-motion: reduce) {
     .exile-card-band { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
     .exile-card-track { animation: none; }
+    .exile-flip-inner { transition: none; }
 }
