@@ -185,3 +185,22 @@
     cursor: pointer;
 }
 .spinroll-newsletter-done:hover { background: #c52b4e; }
+
+/* Google reCAPTCHA i nyhetsbrev – placering och mobilanpassning */
+.spinroll-footer .sib-captcha {
+    margin: 14px 0 18px;
+}
+.spinroll-footer .sib-captcha .form__label-row {
+    max-width: 100%;
+}
+.spinroll-footer #sib-captcha {
+    max-width: 100%;
+    min-height: 78px;
+}
+@media (max-width: 360px) {
+    .spinroll-footer #sib-captcha {
+        transform: scale(.86);
+        transform-origin: left top;
+        margin-bottom: -10px;
+    }
+}
