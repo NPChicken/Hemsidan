@@ -100,14 +100,17 @@ body {
     font-size: 18px;
     font-weight: bold;
     border-radius: 10px;
-    transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    --magnet-x: 0px;
+    --magnet-y: 0px;
+    transform: translate3d(var(--magnet-x), var(--magnet-y), 0) scale(1);
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 /* Diskret effekt vid hover, endast på enheter med muspekare */
 @media (hover: hover) and (pointer: fine) {
     .kop-knapp:hover {
         background-color: #c52b4e;
-        transform: scale(1.045);
+        transform: translate3d(var(--magnet-x), var(--magnet-y), 0) scale(1.045);
         box-shadow: 0 0 20px rgba(242, 201, 158, 0.38);
     }
 }
