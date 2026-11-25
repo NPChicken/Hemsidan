@@ -633,3 +633,7 @@ button.kop-knapp {
         opacity: 0.16;
     }
 }
+
+/* Startsidan har bara bildbannern och sidfoten. */
+body.spinroll-startsida { min-height: 100vh; }
+body.spinroll-startsida .draperi { margin-top: 35vh; height: 65vh; }
