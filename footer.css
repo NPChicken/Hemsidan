@@ -1,0 +1,50 @@
+/* Gemensam sidfot */
+.spinroll-footer {
+    position: relative;
+    z-index: 2;
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    padding: 56px 24px 24px;
+}
+.spinroll-footer * { box-sizing: border-box; }
+.spinroll-footer-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr;
+    gap: 40px;
+    align-items: start;
+}
+.spinroll-footer .footer-logo {
+    position: static;
+    display: block;
+    width: 180px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+.spinroll-footer h2 { color: #f2c99e; font-size: 19px; margin: 0 0 14px; }
+.spinroll-footer p { color: #ddd; line-height: 1.6; margin: 0 0 12px; }
+.spinroll-footer a { color: #f2c99e; text-decoration: underline; }
+.spinroll-footer label { display: block; margin-bottom: 8px; }
+.spinroll-footer input {
+    width: 100%; min-width: 0; padding: 12px;
+    border: 1px solid #888; border-radius: 6px;
+    background: #171717; color: #fff; font: inherit;
+}
+.spinroll-footer button {
+    margin-top: 10px; padding: 12px 20px; border: 0;
+    border-radius: 6px; background: #f2c99e; color: #580a17;
+    font: inherit; font-weight: bold;
+}
+.spinroll-footer button:disabled { opacity: .65; cursor: not-allowed; }
+.spinroll-footer .footer-note { font-size: 13px; margin-top: 10px; }
+.spinroll-footer-bottom {
+    max-width: 1200px; margin: 36px auto 0; padding-top: 20px;
+    border-top: 1px solid #444; font-size: 13px;
+}
+@media (max-width: 750px) {
+    .spinroll-footer-grid { grid-template-columns: 1fr; gap: 28px; }
+    .spinroll-footer { padding: 36px 20px 20px; }
+}
