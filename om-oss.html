@@ -260,6 +260,18 @@
                                     <label class="entry__error entry__error--primary" aria-live="polite"></label>
                                 </div>
                             </div>
+                            <!-- Google reCAPTCHA (från Brevos HTML-kod) -->
+                            <div class="sib-captcha sib-form-block">
+                                <div class="form__entry entry_block">
+                                    <div class="form__label-row">
+                                        <div class="g-recaptcha sib-visible-recaptcha"
+                                             id="sib-captcha"
+                                             data-sitekey="6Lds7TEuAAAAAMFA0-Bf5rMKfzmjtIm_B-o7995R"
+                                             data-callback="handleCaptchaResponse"></div>
+                                    </div>
+                                    <label class="entry__error entry__error--primary" aria-live="polite"></label>
+                                </div>
+                            </div>
                             <div class="sib-optin sib-form-block" data-required="true">
                                 <div class="form__entry entry_mcq">
                                     <div class="form__label-row">
@@ -313,6 +325,11 @@
 
     <!-- Brevos formulärhantering och SpinRoll-popup -->
     <script>
+        // Brevos reCAPTCHA utlöser denna händelse när användaren verifierats.
+        function handleCaptchaResponse() {
+            const captcha = document.getElementById("sib-captcha");
+            if (captcha) captcha.dispatchEvent(new Event("captchaChange"));
+        }
         window.LOCALE = "en";
         window.EMAIL_INVALID_MESSAGE = "Ange en giltig e-postadress.";
         window.REQUIRED_ERROR_MESSAGE = "Det här fältet måste fyllas i.";
@@ -322,5 +339,6 @@
     </script>
     <script defer src="https://sibforms.com/forms/end-form/build/main.js"></script>
     <script defer src="footer.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?hl=sv" async defer></script>
 </body>
 </html>
