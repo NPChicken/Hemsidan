@@ -91,3 +91,32 @@ a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }
+
+/* Orderöversikt – bara RLS-godkända testordrar hämtas av JavaScript. */
+.staff-orders { margin-top: 62px; }
+.orders-heading { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 22px; margin-bottom: 24px; }
+.orders-heading .eyebrow { margin-bottom: 12px; }
+.orders-heading h2 { margin: 0; color: #fff; font-size: clamp(26px, 4vw, 37px); }
+.orders-message { margin: 0; background: rgba(242,201,158,.08); border: 1px solid var(--line); border-radius: 10px; padding: 24px; color: #f6ddcf; line-height: 1.6; }
+.orders-list { display: grid; gap: 12px; }
+.order-card { padding: 20px 23px; border-radius: 13px; border: 1px solid var(--line); background: #681322; }
+.order-card-top { display: flex; flex-direction: column; gap: 14px; }
+.order-summary, .order-meta { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+.order-reference { color: var(--cream); font-size: 13px; }
+.order-date { color: #d9b1b5; font-size: 12px; }
+.order-meta strong { color: #fff; font-size: 19px; }
+.order-meta .order-amount { color: var(--cream); font-size: 21px; }
+.order-details { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 15px; }
+.order-details > summary { color: var(--cream); cursor: pointer; font-weight: bold; font-size: 13px; width: fit-content; }
+.order-details > summary:hover { color: #fff; }
+.order-detail-content { margin-top: 17px; padding-top: 4px; color: #f1cbce; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.order-detail-content p { margin: 6px 0 12px; }
+.order-detail-content a { color: var(--cream); }
+.order-products { margin: 18px 0 0; padding-left: 20px; }
+.order-products li { margin-bottom: 8px; }
+.orders-caption { margin-top: 18px; color: #d9b1b5; font-size: 12px; line-height: 1.5; }
+@media (max-width: 590px) {
+    .staff-orders { margin-top: 44px; }
+    .order-card { padding: 17px; }
+    .orders-heading .outline-button { width: 100%; }
+}
