@@ -110,8 +110,8 @@ body {
 @media (hover: hover) and (pointer: fine) {
     .kop-knapp:hover {
         background-color: #c52b4e;
-        transform: translate3d(var(--magnet-x), var(--magnet-y), 0) scale(1.045);
-        box-shadow: 0 0 20px rgba(242, 201, 158, 0.38);
+        transform: translate3d(var(--magnet-x), var(--magnet-y), 0) scale(1.025);
+        box-shadow: 0 0 12px rgba(242, 201, 158, 0.18);
     }
 }
 
