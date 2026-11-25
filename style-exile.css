@@ -1,0 +1,257 @@
+/* Exile – separat sidstil så att startsidans fixerade bild inte påverkar layouten */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: Arial, sans-serif; background: #580a17; color: #f2c99e; }
+button, input { font: inherit; }
+a { color: inherit; }
+/* ========================================
+   HAMBURGERMENY
+======================================== */
+
+.menyknapp {
+    position: fixed;
+    top: 25px;
+    left: 25px;
+    z-index: 1001;
+
+    background: transparent;
+    border: none;
+    color: #f2c99e;
+    font-size: 36px;
+    cursor: pointer;
+}
+
+.sidomeny {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    background-color: #580a17;
+    z-index: 1000;
+
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding: 110px 35px 35px;
+
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.sidomeny.oppen {
+    transform: translateX(0);
+}
+
+.sidomeny a {
+    color: #f2c99e;
+    text-decoration: none;
+    font-size: 24px;
+}
+
+.sidomeny a:hover {
+    text-decoration: underline;
+}
+
+.menyknapp:has(+ .sidomeny.oppen) {
+    color: #f2c99e;
+}
+
+
+
+.menyknapp { color: #f2c99e; background: #580a17; border: 1px solid #f2c99e; border-radius: 12px; font-size: 28px; width: 54px; height: 54px; }
+.sidomeny a[aria-current="page"] { color: #fff; font-weight: bold; }
+#innehall { max-width: 1240px; margin: 0 auto; padding: 35px 32px 90px; }
+.exile-top { text-align: center; }
+.exile-brand { display: inline-block; margin-bottom: 4px; }
+.exile-brand img { display: block; width: min(200px, 55vw); height: auto; }
+.exile-eyebrow, .exile-kicker { display: block; font-weight: bold; letter-spacing: .19em; font-size: 12px; color: #f2c99e; }
+.exile-top h1 { margin: 6px 0 2px; font-size: clamp(60px, 11vw, 126px); line-height: 1; letter-spacing: .06em; color: #fff; }
+.exile-tagline { color: #f2c99e; font-size: clamp(17px, 3vw, 23px); margin: 8px 0 24px; }
+.exile-product { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(30px, 5vw, 70px); align-items: center; }
+.exile-model { min-height: 460px; background: transparent; border: none; border-radius: 0; overflow: visible; }
+.exile-model model-viewer { width: 100%; height: 500px; --poster-color: transparent; background: transparent; }
+.exile-description h2 { font-size: clamp(30px, 4vw, 46px); line-height: 1.13; color: #fff; margin: 13px 0 24px; }
+.exile-description p:not(.exile-kicker):not(.exile-checkout-note) { font-size: 17px; line-height: 1.75; color: #f7e8e2; }
+.exile-purchase { margin-top: 30px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.exile-price { color: #fff; font-size: 32px; white-space: nowrap; }
+.exile-buy { background: #f2c99e; color: #580a17; border: 0; border-radius: 9px; padding: 16px 26px; font-weight: 800; cursor: pointer; }
+.exile-buy:hover { background: #fff; }
+.exile-checkout-note { font-size: 13px; color: #e9b4c0; margin-top: 15px; }
+.exile-facts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; margin: 70px 0; }
+.exile-facts > div { padding: 26px 14px; border-radius: 15px; background: #f2c99e; text-align: center; color: #580a17; }
+.exile-facts span { display: block; font-size: 14px; font-weight: bold; margin-bottom: 12px; }
+.exile-facts strong { display: block; font-size: clamp(17px,2vw,23px); }
+.exile-details { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.exile-detail-card { background: #f2c99e; color: #580a17; border-radius: 18px; padding: clamp(25px,4vw,45px); }
+.exile-detail-card .exile-kicker { color: #94364a; }
+.exile-detail-card h2 { font-size: clamp(26px,3vw,34px); margin: 12px 0 18px; }
+.exile-detail-card p, .exile-detail-card li { font-size: 16px; line-height: 1.8; }
+.exile-detail-card li { padding: 3px 0; }
+.exile-detail-card ul { padding-left: 22px; }
+#kundvagn-knapp {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    z-index: 1002;
+    background: #580a17;
+    color: #f2c99e;
+    border: 1px solid #f2c99e;
+    border-radius: 12px;
+    padding: 12px 17px;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+#kundvagn-antal {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+/* Sidopanel */
+#kundvagn-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    max-width: 100%;
+    height: 100dvh;
+    z-index: 1100;
+
+    background: #580a17;
+    color: #f2c99e;
+    font-family: Arial, sans-serif;
+
+    padding: 28px;
+    box-shadow: -10px 0 35px #0005;
+
+    transform: translateX(110%);
+    transition: transform 0.3s ease;
+
+    display: flex;
+    flex-direction: column;
+}
+
+#kundvagn-panel.oppen {
+    transform: translateX(0);
+}
+
+.kundvagn-rubrik {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #a91e3d;
+}
+
+.kundvagn-rubrik h2 {
+    font-size: 28px;
+}
+
+#stang-kundvagn {
+    background: none;
+    color: #f2c99e;
+    border: none;
+    font-size: 35px;
+    cursor: pointer;
+}
+
+#kundvagn-lista {
+    flex: 1;
+    overflow-y: auto;
+    padding-top: 25px;
+}
+
+.kundvagn-produkt {
+    padding: 18px 0;
+    border-bottom: 1px solid #a91e3d;
+}
+
+.kundvagn-produkt p {
+    color: #ffffff;
+}
+
+.antal-kontroller {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.antal-kontroller button {
+    background: #a91e3d;
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 6px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.kundvagn-botten {
+    border-top: 1px solid #a91e3d;
+    padding-top: 20px;
+}
+
+.kundvagn-botten p {
+    display: flex;
+    justify-content: space-between;
+    font-size: 22px;
+}
+
+#till-kassan {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 17px;
+    background: #a91e3d;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#till-kassan:hover {
+    background: #c52b4e;
+}
+
+#till-kassan:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+/* Se till att köpknappen också fungerar som button */
+button.kop-knapp {
+    border: none;
+    cursor: pointer;
+}
+
+@media (max-width: 650px) {
+    #kundvagn-knapp {
+        top: 15px;
+        right: 15px;
+    }
+
+    #kundvagn-panel {
+        width: 100%;
+    }
+}
+
+
+@media (max-width: 850px) {
+ .exile-product, .exile-details { grid-template-columns: 1fr; }
+ .exile-model { min-height: 350px; }
+ .exile-model model-viewer { height: 390px; }
+ .exile-facts { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 40px 0; }
+}
+@media (max-width: 540px) {
+ #innehall { padding: 32px 16px 55px; }
+ .exile-brand { margin-bottom: 4px; }
+ .exile-tagline { margin-bottom: 18px; }
+ .exile-model { min-height: 290px; }
+ .exile-model model-viewer { height: 320px; }
+ .exile-facts > div { padding: 22px 10px; }
+ .exile-detail-card { padding: 24px 20px; }
+ .exile-purchase { gap: 16px; }
+}
