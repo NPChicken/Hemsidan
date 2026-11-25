@@ -530,22 +530,59 @@ main {
 }
 
 
-/* SpinRoll-logga på Om oss-sidan */
-.om-oss-logga {
-    margin: 0 0 20px;
+/* Om oss-intro: centrerad logga och jämna avstånd */
+.om-oss-kort {
+    text-align: center;
 }
 
-.om-oss-logga img {
-    display: block;
+.om-oss-kort .overrubrik {
+    margin-bottom: 18px;
+}
+
+.om-oss-kort .om-oss-logga {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 28px;
     width: 100%;
-    max-width: 500px;
+}
+
+.om-oss-kort .om-oss-logga img {
+    display: block;
+    width: min(100%, 480px);
+    max-width: 100%;
     height: auto;
     object-fit: contain;
 }
 
+.om-oss-kort h2 {
+    margin-bottom: 16px;
+}
+
+.om-oss-kort p {
+    margin: 0 auto 28px;
+}
+
 @media (max-width: 650px) {
-    .om-oss-logga img {
-        max-width: 100%;
+    .om-oss-kort {
+        padding: 42px 22px;
+    }
+
+    .om-oss-kort .overrubrik {
+        margin-bottom: 16px;
+        letter-spacing: 2px;
+    }
+
+    .om-oss-kort .om-oss-logga {
+        margin-bottom: 22px;
+    }
+
+    .om-oss-kort .om-oss-logga img {
+        width: min(100%, 360px);
+    }
+
+    .om-oss-kort p {
+        margin-bottom: 25px;
     }
 }
 
