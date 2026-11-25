@@ -489,3 +489,106 @@ button.kop-knapp {
         font-size: 26px;
     }
 }
+
+
+
+/* ========================================
+   SPINROLL - VÅGIGA SIDODEKORATIONER
+======================================== */
+
+.rod-fortsattning {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+/* Vänster och höger peach-form */
+.rod-fortsattning::before,
+.rod-fortsattning::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 90px;
+    height: 100%;
+    background: #f2c99e;
+    opacity: 0.22;
+    pointer-events: none;
+    z-index: 0;
+
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 8%,
+        black 18%,
+        black 100%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 8%,
+        black 18%,
+        black 100%
+    );
+}
+
+/* Vänster sida */
+.rod-fortsattning::before {
+    left: 0;
+    clip-path: polygon(
+        0 0,
+        100% 0,
+        72% 8%,
+        100% 16%,
+        68% 24%,
+        100% 32%,
+        74% 40%,
+        100% 48%,
+        66% 56%,
+        100% 64%,
+        72% 72%,
+        100% 80%,
+        70% 88%,
+        100% 96%,
+        78% 100%,
+        0 100%
+    );
+}
+
+/* Höger sida */
+.rod-fortsattning::after {
+    right: 0;
+    clip-path: polygon(
+        0 0,
+        100% 0,
+        100% 100%,
+        22% 100%,
+        0 96%,
+        30% 88%,
+        0 80%,
+        28% 72%,
+        0 64%,
+        34% 56%,
+        0 48%,
+        26% 40%,
+        0 32%,
+        32% 24%,
+        0 16%,
+        28% 8%
+    );
+}
+
+/* Innehållet ska ligga framför */
+.produkt-sektion,
+.produktinformation {
+    position: relative;
+    z-index: 1;
+}
+
+/* Lite mildare på mobil */
+@media (max-width: 750px) {
+    .rod-fortsattning::before,
+    .rod-fortsattning::after {
+        width: 45px;
+        opacity: 0.16;
+    }
+}
