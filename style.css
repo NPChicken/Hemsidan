@@ -173,6 +173,14 @@ body {
     z-index: -1;
 }
 
+/* Smalare fönster: visa mer av bannerns sidor (bland annat händerna). */
+@media (max-aspect-ratio: 4/3) {
+    .hero-banner {
+        height: 82vh;
+        height: 82svh;
+    }
+}
+
 /* Menyknapp */
 .menyknapp {
     position: fixed;
