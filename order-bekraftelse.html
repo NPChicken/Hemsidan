@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Återgång till SpinRoll UF efter Stripe-kassan.">
+  <title>Beställning | SpinRoll UF</title>
+  <style>
+    :root { color-scheme: dark; --wine: #580a17; --cream: #f2c99e; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; font-family: Arial, sans-serif; background: radial-gradient(circle at 65% 12%, #792037, var(--wine) 62%); color: var(--cream); }
+    header { max-width: 1150px; width: 100%; margin: 0 auto; padding: 29px 28px; }
+    .logo img { display: block; width: 160px; max-width: 45vw; height: auto; }
+    main { display: grid; place-items: center; flex: 1; width: 100%; padding: 40px 22px 80px; }
+    .panel { width: min(100%, 610px); padding: clamp(28px, 6vw, 62px); border: 1px solid #b47e80; border-radius: 20px; background: #6a1526; text-align: center; box-shadow: 0 20px 80px #29000a55; }
+    .symbol { display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto 26px; border: 1px solid #e7b994; border-radius: 50%; font-size: 31px; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .2em; }
+    h1 { margin: 16px 0; color: #fff; font-size: clamp(30px, 5vw, 48px); line-height: 1.13; }
+    p { color: #f0cfd0; font-size: 16px; line-height: 1.7; }
+    .help { margin-top: 24px; color: #f2c99e; font-size: 13px; }
+    .buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 31px; }
+    .button { display: inline-flex; justify-content: center; align-items: center; min-height: 46px; padding: 13px 19px; border-radius: 9px; font-size: 14px; font-weight: 700; text-decoration: none; }
+    .button-primary { background: var(--cream); color: var(--wine); }
+    .button-secondary { border: 1px solid var(--cream); color: var(--cream); }
+    .button:hover { filter: brightness(1.09); }
+    footer { width: 100%; padding: 25px; text-align: center; color: #e0adb2; font-size: 12px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <header><a class="logo" href="index.html" aria-label="Till SpinRolls startsida"><img src="pictures/logo.png" alt="SpinRoll UF"></a></header>
+  <main>
+    <section class="panel" aria-labelledby="confirmation-title">
+      <div class="symbol" aria-hidden="true">✦</div>
+      <span class="eyebrow">SPINROLL UF · KASSAN</span>
+      <h1 id="confirmation-title">Tack för din beställning!</h1>
+      <p>Du har kommit tillbaka från Stripes betalningssida. Vi inväntar betalningsbekräftelsen från Stripe innan vi registrerar ordern som betald.</p>
+      <p class="help">Om du har gjort ett testköp kan du kontrollera dess status i Stripe Dashboard. Kontakta oss om något inte verkar stämma.</p>
+      <div class="buttons">
+        <a class="button button-primary" href="index.html">Till startsidan</a>
+        <a class="button button-secondary" href="exile.html">Tillbaka till Exile</a>
+      </div>
+    </section>
+  </main>
+  <footer>© 2026 SpinRoll UF</footer>
+</body>
+</html>
