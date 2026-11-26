@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" role="img" aria-label="SpinRoll-tärning">
+  <defs>
+    <linearGradient id="ruby" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#d01b43"/>
+      <stop offset="1" stop-color="#b40e37"/>
+    </linearGradient>
+  </defs>
+  <path d="M50 3 97 34v52L50 117 3 86V34Z" fill="url(#ruby)" stroke="#650010" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M50 3v34M3 37h94M50 37 27 72 3 37M50 37l23 35 24-35M27 72h46M3 86l24-14 23 45M97 86 73 72 50 117" fill="none" stroke="#650010" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>
