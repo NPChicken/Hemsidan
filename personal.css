@@ -163,3 +163,50 @@ a { color: inherit; }
     .order-filter { padding: 9px 12px; }
     .order-status-select, .save-order-status { flex: 1 1 100%; }
 }
+
+/* Lagerpanel – samma färger som resten av personalportalen. */
+.stock-section { margin-top: 72px; }
+.stock-section .orders-heading h2 { color: #fff; font-size: clamp(27px,4vw,38px); }
+.stock-note { margin: 0 0 18px; border: 1px solid var(--line); border-radius: 10px; background: rgba(242,201,158,.08); padding: 13px 16px; line-height: 1.5; }
+.stock-note.is-error { background: #6d2025; border-color: #e99b9b; color: #ffdbd6; }
+.stock-summary { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-bottom: 20px; }
+.stock-stat { display: flex; flex-direction: column; gap: 7px; padding: 20px; border: 1px solid var(--line); background: #681322; border-radius: 12px; }
+.stock-stat span { color: #e7b6b6; font-size: 12px; }
+.stock-stat strong { color: #fff; font-size: 27px; }
+.stock-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.stock-panel { min-width: 0; padding: 25px; border: 1px solid var(--line); border-radius: 14px; background: #681322; }
+.stock-panel h3 { color: #fff; font-size: 21px; margin: 0 0 10px; }
+.stock-muted { color: #e1bdc0; font-size: 13px; line-height: 1.55; margin: 4px 0 15px; overflow-wrap: anywhere; }
+.stock-list,.incoming-list { display: grid; gap: 12px; margin-top: 20px; }
+.stock-entry { border: 1px solid var(--line); border-radius: 10px; background: rgba(33,0,8,.2); padding: 17px; }
+.stock-entry > strong { color: #fff; }
+.stock-entry-line { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 8px 0; }
+.stock-entry-line strong { color: #fff; }
+.stock-sku { font-size: 12px; color: #d9b1b5; font-weight: 400; }
+.stock-total { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 10px; font-size: 13px; font-weight: 700; }
+.stock-receive { width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid var(--cream); background: transparent; color: var(--cream); font: inherit; font-size: 13px; font-weight: 700; }
+.stock-receive:hover:not(:disabled) { background: rgba(242,201,158,.12); }
+.stock-form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; margin-top: 18px; }
+.stock-form { display: flex; flex-direction: column; align-items: stretch; }
+.stock-form h3 { margin-bottom: 22px; }
+.stock-form label { color: #ffe5d2; font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+.stock-form input,.stock-form select,.stock-form textarea {
+    width: 100%; padding: 12px 14px; margin-bottom: 16px; border: 1px solid rgba(242,201,158,.3);
+    border-radius: 8px; color: #fff; background: #380713; outline: none; font: inherit; font-size: 14px;
+}
+.stock-form textarea { resize: vertical; }
+.stock-form select option { background: #380713; color: #fff; }
+.stock-form input:focus,.stock-form select:focus,.stock-form textarea:focus { border-color: var(--cream); box-shadow: 0 0 0 3px rgba(242,201,158,.14); }
+.stock-form input::placeholder,.stock-form textarea::placeholder { color: #cf9da5; }
+.stock-submit { margin-top: auto; padding: 13px 15px; border: 0; border-radius: 8px; background: var(--cream); color: var(--wine); font: inherit; font-size: 14px; font-weight: 800; }
+.stock-submit:hover:not(:disabled) { background: #ffe0ba; }
+.stock-section button:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 850px) {
+    .stock-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .stock-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 590px) {
+    .stock-section { margin-top: 48px; }
+    .stock-form-grid { grid-template-columns: 1fr; }
+    .stock-panel { padding: 19px; }
+}
