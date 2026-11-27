@@ -558,3 +558,14 @@ a { color: inherit; }
     padding-top: 12px;
     border-top: 1px solid var(--line);
 }
+
+/* Show unit margin first, with the accumulated revenue and margin beneath. */
+.analytics-product-stats .analytics-product-per-unit {
+    grid-column: 1 / -1;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+}
+.analytics-product-stats .analytics-product-per-unit strong {
+    color: var(--cream);
+    font-size: 24px;
+}
