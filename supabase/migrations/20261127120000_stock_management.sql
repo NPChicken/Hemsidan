@@ -30,6 +30,7 @@ create table public.incoming_stock (
     item_id uuid not null references public.stock_items(id),
     location_id uuid not null references public.stock_locations(id),
     quantity integer not null check (quantity between 1 and 1000000),
+    total_cost_ore bigint check (total_cost_ore between 0 and 100000000000),
     supplier text check (supplier is null or length(supplier) <= 150),
     expected_on date,
     notes text check (notes is null or length(notes) <= 1000),
@@ -157,7 +158,8 @@ $$;
 
 create function public.add_incoming_stock(
     p_item_id uuid, p_location_id uuid, p_quantity integer,
-    p_supplier text default null, p_expected_on date default null, p_notes text default null
+    p_supplier text default null, p_expected_on date default null, p_notes text default null,
+    p_total_cost_ore bigint default null
 )
 returns uuid language plpgsql security definer set search_path = ''
 as $$
@@ -165,12 +167,13 @@ declare v_id uuid;
 begin
     perform public.assert_stock_staff();
     if p_quantity is null or p_quantity < 1 or p_quantity > 1000000 or
-       length(coalesce(p_supplier,'')) > 150 or length(coalesce(p_notes,'')) > 1000 then
+       length(coalesce(p_supplier,'')) > 150 or length(coalesce(p_notes,'')) > 1000 or
+       (p_total_cost_ore is not null and (p_total_cost_ore < 0 or p_total_cost_ore > 100000000000)) then
         raise exception 'Ogiltig planerad leverans' using errcode = '22023';
     end if;
-    insert into public.incoming_stock(item_id,location_id,quantity,supplier,expected_on,notes,created_by)
+    insert into public.incoming_stock(item_id,location_id,quantity,supplier,expected_on,notes,total_cost_ore,created_by)
     values(p_item_id,p_location_id,p_quantity,nullif(trim(p_supplier),''),p_expected_on,
-        nullif(trim(p_notes),''),auth.uid())
+        nullif(trim(p_notes),''),p_total_cost_ore,auth.uid())
     returning id into v_id;
     return v_id;
 end;
@@ -224,11 +227,11 @@ revoke all on function public.assert_stock_staff() from public, anon, authentica
 revoke all on function public.add_stock_item(text,text,text) from public, anon;
 revoke all on function public.add_stock_location(text,text) from public, anon;
 revoke all on function public.set_stock_level(uuid,uuid,integer) from public, anon;
-revoke all on function public.add_incoming_stock(uuid,uuid,integer,text,date,text) from public, anon;
+revoke all on function public.add_incoming_stock(uuid,uuid,integer,text,date,text,bigint) from public, anon;
 revoke all on function public.receive_incoming_stock(uuid) from public, anon;
 grant execute on function public.add_stock_item(text,text,text),
     public.add_stock_location(text,text),
     public.set_stock_level(uuid,uuid,integer),
-    public.add_incoming_stock(uuid,uuid,integer,text,date,text),
+    public.add_incoming_stock(uuid,uuid,integer,text,date,text,bigint),
     public.receive_incoming_stock(uuid) to authenticated;
 commit;
