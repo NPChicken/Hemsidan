@@ -21,7 +21,21 @@ async function getActiveStaffMembership(userId) {
 
 const $ = id => document.getElementById(id);
 const views = ["login-view", "forgot-view", "recovery-view"];
-let recoveryMode = false;
+// En återställningslänk har en egen URL så att initial inloggningshändelse
+// aldrig får ta över och öppna personalpanelen av misstag.
+const recoveryRedirectUrl = new URL("personal.html?recovery=1", window.location.origin).href;
+const recoveryIntent = new URLSearchParams(window.location.search).get("recovery") === "1" ||
+    new URLSearchParams(window.location.hash.slice(1)).get("type") === "recovery";
+let recoveryMode = recoveryIntent;
+let recoveryVerified = false;
+let renderSequence = 0;
+
+function clearRecoveryUrl() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("recovery");
+    url.hash = "";
+    window.history.replaceState(null, "", url.pathname + url.search);
+}
 
 function showMessage(message = "", kind = "error") {
     const node = $("auth-message");
@@ -252,6 +266,7 @@ document.querySelectorAll("[data-order-filter]").forEach(button => {
 });
 
 function showDashboard(user) {
+    if (recoveryMode) return;
     const email = user.email || "";
     const first = email.split("@")[0].split(".")[0] || "kollega";
     $("staff-name").textContent = first.charAt(0).toLocaleUpperCase("sv") + first.slice(1);
@@ -263,8 +278,14 @@ function showDashboard(user) {
 }
 
 async function renderSession(session) {
+    const seq = ++renderSequence;
     if (recoveryMode) {
-        showAuthView("recovery-view");
+        if (session?.user && recoveryVerified) {
+            showAuthView("recovery-view");
+        } else {
+            showAuthView("login-view");
+            showMessage("Återställningslänken kunde inte verifieras eller har gått ut. Begär en ny länk via Glömt lösenordet.");
+        }
         return;
     }
     if (!session?.user) {
@@ -273,6 +294,7 @@ async function renderSession(session) {
     }
     try {
         const membership = await getActiveStaffMembership(session.user.id);
+        if (seq !== renderSequence || recoveryMode) return;
         if (!membership) {
             showAuthView("login-view");
             showMessage("Ditt konto är inloggat men har inte personalbehörighet. Be administratören lägga till dig i Supabase.");
@@ -280,6 +302,7 @@ async function renderSession(session) {
         }
         showDashboard(session.user);
     } catch (error) {
+        if (seq !== renderSequence || recoveryMode) return;
         showAuthView("login-view");
         showMessage("Kunde inte kontrollera personalbehörigheten. Databasmigrationen kanske inte har körts ännu.");
         console.error("Staff membership lookup failed:", error.message);
@@ -324,8 +347,9 @@ $("forgot-form").addEventListener("submit", async event => {
     showMessage();
     setWorking(button, true, "Skicka återställningslänk ↗");
     try {
-        const redirectTo = new URL("personal.html", window.location.href).href;
-        const { error } = await supabase.auth.resetPasswordForEmail($("forgot-email").value.trim(), { redirectTo });
+        const { error } = await supabase.auth.resetPasswordForEmail($("forgot-email").value.trim(), {
+            redirectTo: recoveryRedirectUrl
+        });
         if (error) throw error;
         showMessage("Om adressen finns registrerad skickas en återställningslänk. Kontrollera även skräpposten.", "success");
     } catch (error) {
@@ -350,8 +374,15 @@ $("recovery-form").addEventListener("submit", async event => {
         if (error) throw error;
         $("recovery-form").reset();
         recoveryMode = false;
-        const { data } = await supabase.auth.getSession();
-        await renderSession(data.session);
+        recoveryVerified = false;
+        clearRecoveryUrl();
+        // En återställningslänk skapar en kortvarig session. Logga ut efter
+        // lösenordsbytet så att användaren loggar in med sitt nya lösenord.
+        const { error: signOutError } = await supabase.auth.signOut();
+        if (signOutError) throw signOutError;
+        $("login-form").reset();
+        showAuthView("login-view");
+        showMessage("Lösenordet är uppdaterat. Logga in med ditt nya lösenord.", "success");
     } catch (error) {
         showMessage("Det gick inte att uppdatera lösenordet. Be om en ny återställningslänk och försök igen.");
         console.error("Password update failed:", error.message);
@@ -375,9 +406,13 @@ $("logout-button").addEventListener("click", async () => {
 
 // Prenumerera före getSession så att återställningslänkar fångas upp.
 supabase.auth.onAuthStateChange((event, session) => {
-    if (event === "PASSWORD_RECOVERY") recoveryMode = true;
-    if (event === "SIGNED_OUT") recoveryMode = false;
-    // Undvik async-anrop till Supabase direkt i auth-callbacken.
+    if (event === "PASSWORD_RECOVERY") {
+        recoveryMode = true;
+        recoveryVerified = true;
+    }
+    if (event === "SIGNED_OUT" && !recoveryMode) recoveryVerified = false;
+    // Den särskilda återställnings-URL:en tar alltid företräde framför
+    // INITIAL_SESSION/SIGNED_IN, som annars kan visa dashboarden.
     queueMicrotask(() => { void renderSession(session); });
 });
 
