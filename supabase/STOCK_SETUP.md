@@ -54,3 +54,7 @@ För att aktivera funktionen behöver du köra [`20261127150000_archive_stock.sq
 Borttagning är en **arkivering**: artikeln eller platsen försvinner från aktiva listor och formulär, men tidigare inleveranser, revisionsloggar och inköpskostnader ligger kvar i databasen för framtida ekonomiska rapporter. Detta förhindrar att historiska kopplingar förstörs. Funktionen vägrar arkivering om det finns saldo kvar på platsen eller artikeln, eller någon planerad leverans som använder den. Inventera till noll och hantera alla väntande leveranser först. Skyddet kontrolleras på serversidan med Supabase Auth och inte bara av gränssnittet.
 
 Koden stöder för närvarande inte att återaktivera en arkiverad artikel eller plats i panelen; det får vi lägga till separat vid behov.
+
+## Återanvänd artikelnummer och lagerplatsnamn efter borttagning
+
+Äldre lager-SQL använde globala UNIQUE-krav för `stock_items.sku` och `stock_locations.name`. Även arkiverade poster låste därmed artikelnummer och namn. Kör [`20261127160000_reuse_archived_stock_identifiers.sql`](./migrations/20261127160000_reuse_archived_stock_identifiers.sql) **en gång efter arkiveringsmigrationen**. Den ersätter de gamla kraven med unika index som gäller endast poster där `archived_at IS NULL`. Arkiverade artiklar och platser behålls för historiken; en ny artikel med samma SKU får ett nytt ID och eget lagersaldo.
