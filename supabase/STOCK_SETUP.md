@@ -79,3 +79,11 @@ För mottagna leveranser vars ursprungliga lagerplats är **arkiverad och har 0 
 - Supabase kräver aktiv personal och kontrollerar själv arkivering och saldo. Verkliga leveranser bör inte rensas utan noggrann kontroll av inventeringen.
 
 Om lagerplatsen är aktiv eller fortfarande har saldo används den vanliga **Ångra mottagning**-knappen i stället.
+
+## Rensning vid redan borttagen lagerplats (senaste korrigeringen)
+
+Om en historisk mottagning inte kan rensas för att lagerplatsen saknas i panelen:
+Kör [`20261127210000_cleanup_received_zero_stock.sql`](./migrations/20261127210000_cleanup_received_zero_stock.sql) i Supabase SQL Editor **efter** `20261127200000_void_archived_received_stock.sql`.
+Publicera senaste `personal.js` och `personal.html`.
+
+Knappen **Rensa testleverans** visas nu när just den artikelns saldo på den tidigare lagerplatsen är **0**, även om platsen inte hittas bland lagerplatserna. SQL kräver adminroll, mottagen leverans och nollsaldo i databasen. Den rensar endast leveransens status (till `voided`) och loggar åtgärden; den ändrar inte lagersaldot. Om saldo är större än noll behövs i stället vanlig lageråterföring eller inventering efter kontroll. **Använd inte rensningen för verkliga mottagningar.**
