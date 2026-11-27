@@ -62,6 +62,9 @@ function showAuthView(id) {
     $("stock-summary").replaceChildren();
     orderFetchSequence++;
     cachedOrders = [];
+    $("tile-order-overview").replaceChildren();
+    $("tile-order-overview").appendChild(element("span", "tile-stock-placeholder", "Hämtar beställningar…"));
+    $("order-count").textContent = "Laddar…";
     $("auth-layout").hidden = false;
     $("staff-dashboard").hidden = true;
     $("auth-loading").hidden = true;
@@ -207,6 +210,57 @@ function buildOrderCard(order) {
     return card;
 }
 
+function renderDashboardOrderOverview() {
+    const overview = $("tile-order-overview");
+    overview.replaceChildren();
+
+    // Samma högst 50 testordrar som visas under "Senaste beställningarna".
+    const newOrders = cachedOrders.filter(order =>
+        order.payment_status === "paid" && order.fulfillment_status === "new");
+    const packing = cachedOrders.filter(order =>
+        order.payment_status === "paid" && order.fulfillment_status === "packing").length;
+
+    const metrics = element("div", "tile-stock-metrics");
+    for (const [label, value] of [["Nya", newOrders.length], ["Packas", packing]]) {
+        const metric = element("div", "tile-stock-metric");
+        metric.append(element("strong", "", value), element("span", "", label));
+        metrics.appendChild(metric);
+    }
+    overview.appendChild(metrics);
+
+    if (!newOrders.length) {
+        overview.appendChild(element("span", "tile-stock-placeholder", "Inga nya beställningar just nu."));
+        return;
+    }
+
+    const list = element("div", "tile-stock-rows");
+    for (const order of newOrders.slice(0, 3)) {
+        const entry = element("div", "tile-order-entry");
+        const row = element("div", "tile-stock-row");
+        const shortRef = String(order.stripe_checkout_session_id || "").slice(-8).toUpperCase();
+        row.append(
+            element("span", "tile-stock-item-name", order.customer_name || "Order " + shortRef),
+            element("strong", "", kronor(order.amount_total, order.currency))
+        );
+        const productNames = (order.order_items || []).map(item =>
+            (item.quantity || 1) + " × " + item.product_name).join(", ");
+        const details = element("span", "tile-order-meta",
+            (productNames || "Produkter ej angivna") + " · " +
+            safeDate(order.stripe_created_at || order.created_at));
+        entry.append(row, details);
+        list.appendChild(entry);
+    }
+    overview.appendChild(list);
+    if (newOrders.length > 3) {
+        overview.appendChild(element("span", "tile-stock-more",
+            "+" + (newOrders.length - 3) + " nya beställningar längre ned"));
+    }
+    if (cachedOrders.length === 50) {
+        overview.appendChild(element("span", "tile-stock-more",
+            "Visar endast de 50 senaste testordrarna."));
+    }
+}
+
 function renderOrderList() {
     const counts = { all: cachedOrders.length, new: 0, packing: 0, shipped: 0 };
     cachedOrders.forEach(order => {
@@ -224,6 +278,7 @@ function renderOrderList() {
     }
     $("order-count").textContent = cachedOrders.length +
         (cachedOrders.length === 50 ? "+ ordrar" : " ordrar");
+    renderDashboardOrderOverview();
 
     const visible = activeOrderFilter === "all"
         ? cachedOrders
@@ -266,6 +321,9 @@ async function loadOrders({ keepNotice = false } = {}) {
         if (seq !== orderFetchSequence) return;
         message.textContent = "Kunde inte hämta beställningar. Kontrollera behörigheten och försök igen.";
         $("order-count").textContent = "Ej tillgängligt";
+        $("tile-order-overview").replaceChildren();
+        $("tile-order-overview").appendChild(element("span", "tile-stock-placeholder",
+            "Orderöversikten kunde inte hämtas."));
         console.error("Order list request failed:", error.message);
     } finally {
         if (seq === orderFetchSequence) button.disabled = false;
