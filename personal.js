@@ -51,6 +51,9 @@ function showAuthView(id) {
     stockLevels = [];
     stockIncoming = [];
     catalogPrices = [];
+    $("tile-stock-overview").replaceChildren();
+    $("tile-stock-overview").appendChild(element("span", "tile-stock-placeholder", "Hämtar lagersaldon…"));
+    $("stock-count").textContent = "Laddar…";
     $("stock-prices-list").replaceChildren();
     $("stock-list").replaceChildren();
     $("incoming-list").replaceChildren();
@@ -518,6 +521,58 @@ function renderCatalogPriceForms() {
     }
 }
 
+function renderDashboardStockOverview() {
+    const overview = $("tile-stock-overview");
+    overview.replaceChildren();
+
+    const activeItems = stockItems.filter(item => !item.archived_at);
+    if (!activeItems.length) {
+        overview.appendChild(element("span", "tile-stock-placeholder", "Inga artiklar registrerade ännu."));
+        return;
+    }
+
+    const perItem = activeItems.map(item => ({
+        item,
+        quantity: stockLevels.filter(level => level.item_id === item.id)
+            .reduce((total, level) => total + level.quantity, 0),
+        incoming: stockIncoming.filter(delivery =>
+            delivery.item_id === item.id && delivery.status === "planned")
+            .reduce((total, delivery) => total + delivery.quantity, 0)
+    }));
+
+    const totals = element("div", "tile-stock-metrics");
+    const totalInStock = perItem.reduce((total, row) => total + row.quantity, 0);
+    const totalOnWay = perItem.reduce((total, row) => total + row.incoming, 0);
+    for (const [label, value] of [
+        ["I lager", totalInStock],
+        ["På väg", totalOnWay]
+    ]) {
+        const metric = element("div", "tile-stock-metric");
+        metric.append(element("strong", "", value), element("span", "", label));
+        totals.appendChild(metric);
+    }
+    overview.appendChild(totals);
+
+    const list = element("div", "tile-stock-rows");
+    for (const row of perItem.slice(0, 3)) {
+        const line = element("div", "tile-stock-row");
+        line.append(
+            element("span", "tile-stock-item-name", row.item.name),
+            element("strong", "", row.quantity + " " + (row.item.unit || "st"))
+        );
+        list.appendChild(line);
+        if (row.incoming > 0) {
+            list.appendChild(element("div", "tile-stock-incoming",
+                "+" + row.incoming + " " + (row.item.unit || "st") + " på väg"));
+        }
+    }
+    overview.appendChild(list);
+    if (perItem.length > 3) {
+        overview.appendChild(element("span", "tile-stock-more",
+            "Och " + (perItem.length - 3) + " artiklar till längre ned"));
+    }
+}
+
 function renderStock() {
     renderCatalogPriceForms();
     const activeItems = stockItems.filter(item => !item.archived_at);
@@ -534,6 +589,7 @@ function renderStock() {
     const knownPendingCost = pending.reduce((sum, x) => sum + (x.total_cost_ore ?? 0), 0);
     const knownReceivedCost = received.reduce((sum, x) => sum + (x.total_cost_ore ?? 0), 0);
     $("stock-count").textContent = activeItems.length + " artiklar";
+    renderDashboardStockOverview();
     const summary = $("stock-summary");
     summary.replaceChildren();
     for (const [label, value] of [
@@ -693,6 +749,10 @@ async function loadStock({ throwOnError = false } = {}) {
         stockMessage(missingArchive
             ? "Databasen saknar lagerarkiveringens fält. Kör SQL-filen 20261127150000_archive_stock.sql i Supabase."
             : "Kunde inte läsa lagerlistan: " + (error.message || "Okänt fel"), true);
+        $("tile-stock-overview").replaceChildren();
+        $("tile-stock-overview").appendChild(element("span", "tile-stock-placeholder",
+            "Lageröversikten kunde inte hämtas."));
+        $("stock-count").textContent = "Ej tillgängligt";
         console.error("Stock fetch failed:", error);
         if (throwOnError) throw error;
     } finally {
