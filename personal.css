@@ -234,3 +234,18 @@ a { color: inherit; }
 @media (max-width: 650px) {
     .stock-locations-panel .stock-list { grid-template-columns: 1fr; }
 }
+
+/* Personalpanelens ordinarie priser och tidsstyrda kampanjpriser */
+.stock-prices-panel { margin-top: 18px; }
+.stock-prices-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 20px; }
+.stock-price-form { border: 1px solid var(--line); border-radius: 12px; padding: 20px; background: rgba(33,0,8,.2); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.stock-price-form h4 { margin: 0; color: #fff; font-size: 18px; }
+.stock-price-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.stock-price-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.stock-price-field label { color: #ffe5d2; font-size: 13px; font-weight: 700; }
+.stock-price-field input { box-sizing: border-box; width: 100%; min-width: 0; padding: 12px 11px; border: 1px solid rgba(242,201,158,.3); border-radius: 8px; color: #fff; background: #380713; font: inherit; font-size: 14px; }
+.stock-price-field input:focus { outline: 2px solid var(--cream); outline-offset: 1px; }
+.stock-price-field input::placeholder { color: #d5a8ae; }
+.stock-price-form .stock-submit { margin-top: 8px; }
+@media (max-width: 880px) { .stock-prices-list { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .stock-price-fields { grid-template-columns: 1fr; } }
