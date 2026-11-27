@@ -128,7 +128,12 @@ export default {
                         method: "POST",
                         headers: { Authorization: "Bearer " + env.STRIPE_SECRET_KEY }
                     });
-                if (!expire.ok) {
+                if (expire.ok) {
+                    // Stripe-sessionen är ogiltig: inga pengar kan tas emot.
+                    await supabaseRpc("release_checkout_stock_reservation", {
+                        p_reservation_id: reservationId
+                    }, env.SUPABASE_SERVICE_ROLE_KEY);
+                } else {
                     console.error("Could not expire orphan Stripe session; reservation held");
                     // Behåll reservationen hellre än att riskera översäljning.
                     reservationId = null;
