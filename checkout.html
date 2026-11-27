@@ -11,6 +11,7 @@
 
     <!-- Stripe -->
     <script src="https://js.stripe.com/v3/"></script>
+    <script src="butikspriser.js?v=20261127-1"></script>
 
     <style>
         * {
@@ -259,7 +260,7 @@
         const produkter = {
             exile: {
                 namn: "Exile",
-                pris: 249
+                pris: null
             }
         };
 
@@ -277,6 +278,10 @@
             kundvagn = {};
         }
 
+        const money = ore => new Intl.NumberFormat("sv-SE", {
+            style: "currency", currency: "SEK"
+        }).format(ore / 100);
+
         // ========================================
         // VISA ORDERÖVERSIKT
         // ========================================
@@ -284,6 +289,7 @@
         function visaOrder() {
             const lista =
                 document.getElementById("order-produkter");
+            lista.replaceChildren();
 
             const totalElement =
                 document.getElementById("order-total");
@@ -302,7 +308,9 @@
                 }
 
                 const produkt = produkter[id];
-                const pris = produkt.pris * antal;
+                const unitOre = window.spinrollPrices?.[id]?.effective_price_ore;
+                if (!Number.isSafeInteger(unitOre) || unitOre <= 0) return false;
+                const pris = unitOre * antal;
 
                 total += pris;
                 antalProdukter += antal;
@@ -321,14 +329,14 @@
                 antalText.textContent = `Antal: ${antal}`;
 
                 const summa = document.createElement("strong");
-                summa.textContent = `${pris} kr`;
+                summa.textContent = money(pris);
 
                 info.append(namn, antalText);
                 rad.append(info, summa);
                 lista.appendChild(rad);
             }
 
-            totalElement.textContent = `${total} kr`;
+            totalElement.textContent = money(total);
 
             if (antalProdukter === 0) {
                 document.getElementById("checkout-container")
@@ -418,9 +426,16 @@
         // INITIERING
         // ========================================
 
-        if (visaOrder()) {
-            startaCheckout();
-        }
+        (async () => {
+            const message = document.getElementById("checkout-meddelande");
+            await window.spinrollPricesReady;
+            if (visaOrder()) {
+                await startaCheckout();
+            } else if (Object.keys(kundvagn).length > 0) {
+                message.textContent = "Kunde inte hämta aktuellt produktpris. Försök ladda om sidan.";
+                document.getElementById("order-total").textContent = "Pris ej tillgängligt";
+            }
+        })();
     </script>
 
 </body>
