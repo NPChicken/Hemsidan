@@ -68,6 +68,7 @@ function showAuthView(id) {
     analyticsProductRows = [];
     analyticsDailyRows = [];
     analyticsPosts = [];
+    analyticsSocialStatus = [];
     $("analytics-chart").replaceChildren();
     $("analytics-products").replaceChildren();
     $("analytics-posts-list").replaceChildren();
@@ -1162,6 +1163,7 @@ let analyticsSequence = 0;
 let analyticsProductRows = [];
 let analyticsDailyRows = [];
 let analyticsPosts = [];
+let analyticsSocialStatus = [];
 const marketingChannels = { instagram: "Instagram", tiktok: "TikTok",
     facebook: "Facebook", youtube: "YouTube", other: "Annat" };
 
@@ -1334,6 +1336,18 @@ function renderAnalyticsChart() {
             s + Number(r.orders_count || 0), 0) +
         " ordrar under perioden, " + analyticsPosts.length + " registrerade inlägg");
 
+    const status = $("analytics-social-status");
+    const channels = ["instagram","tiktok"];
+    status.textContent = channels.map(channel => {
+        const state = analyticsSocialStatus.find(row => row.channel === channel);
+        const name = marketingChannels[channel];
+        if (!state?.last_success_at) return name + ": väntar på officiell kontoanslutning";
+        const stale = Date.now() - Date.parse(state.last_success_at) > 36 * 3600000;
+        return name + ": " + (stale ? "senaste synkronisering gammal (" : "senast hämtad ") +
+            safeDate(state.last_success_at) + (stale ? ")" : "") +
+            (state.error_message ? " · senaste hämtning misslyckades" : "");
+    }).join(" · ");
+
     const postsList = $("analytics-posts-list");
     postsList.replaceChildren();
     if (!analyticsPosts.length) {
@@ -1354,9 +1368,12 @@ function renderAnalyticsChart() {
             anchor.rel = "noopener noreferrer";
             info.appendChild(anchor);
         }
-        const del = element("button", "analytics-post-delete", "Ta bort");
+        const official = post.source === "instagram" || post.source === "tiktok";
+        const del = element("button", "analytics-post-delete",
+            official ? "Automatiskt hämtad" : "Ta bort");
         del.type = "button";
-        del.addEventListener("click", async () => {
+        del.disabled = official;
+        if (!official) del.addEventListener("click", async () => {
             if (!window.confirm('Ta bort inlägget "' + post.title + '" från tidslinjen?')) return;
             del.disabled = true;
             try {
@@ -1379,21 +1396,24 @@ async function loadAnalytics() {
     analyticsNotice("Hämtar försäljning och inlägg…");
     const start = analyticsDateFrom(Number($("analytics-period").value));
     try {
-        const [profit, trend, posts] = await Promise.all([
+        const [profit, trend, posts, syncStatus] = await Promise.all([
             supabase.rpc("sales_profit_by_product"),
             supabase.rpc("sales_trend_by_day", { p_from: analyticsLocalDay(start) }),
             supabase.from("marketing_posts")
-                .select("id,channel,title,published_at,post_url")
+                .select("id,channel,title,published_at,post_url,source")
                 .gte("published_at", start.toISOString())
                 .order("published_at", { ascending: false })
-                .limit(500)
+                .limit(500),
+            supabase.from("social_sync_status")
+                .select("channel,last_success_at,last_error_at,error_message,posts_seen")
         ]);
-        if (profit.error || trend.error || posts.error)
-            throw profit.error || trend.error || posts.error;
+        if (profit.error || trend.error || posts.error || syncStatus.error)
+            throw profit.error || trend.error || posts.error || syncStatus.error;
         if (seq !== analyticsSequence || $("staff-dashboard").hidden) return;
         analyticsProductRows = profit.data || [];
         analyticsDailyRows = trend.data || [];
         analyticsPosts = posts.data || [];
+        analyticsSocialStatus = syncStatus.data || [];
         renderAnalyticsProducts();
         renderAnalyticsChart();
         analyticsNotice("");
