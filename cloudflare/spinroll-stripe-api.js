@@ -99,7 +99,7 @@ export default {
             // Stripe kräver minst 30 min. Ingen automatisk lageråterföring baserad
             // enbart på tid: endast signerad Stripe checkout.session.expired-event.
             params.set("expires_at", String(Math.floor(Date.now() / 1000) + 35 * 60));
-            params.set("payment_method_types[0]", "card");
+            params.set("allowed_payment_method_types[0]", "card");
 
             const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
                 method: "POST",
