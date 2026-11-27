@@ -263,13 +263,14 @@ function buildOrderCard(order) {
                 blank.value = "";
                 batchSelect.appendChild(blank);
                 const candidates = stockIncoming.filter(delivery =>
-                    delivery.status === "received" && delivery.is_test === false &&
-                    Number.isSafeInteger(delivery.total_cost_ore) &&
+                    delivery.status === "received" &&
+                    delivery.total_cost_ore !== null &&
+                    Number.isFinite(Number(delivery.total_cost_ore)) &&
                     delivery.item_id === allocations[0].item_id &&
                     delivery.location_id === allocations[0].location_id);
                 for (const delivery of candidates) {
                     const option = element("option", "",
-                        (delivery.supplier || "Leverans") + " · " + delivery.quantity +
+                        (delivery.is_test ? "TEST · " : "") + (delivery.supplier || "Leverans") + " · " + delivery.quantity +
                         " st · " + kronor(delivery.total_cost_ore / delivery.quantity) + "/st" +
                         (delivery.received_at ? " · " + safeDate(delivery.received_at) : ""));
                     option.value = delivery.id;

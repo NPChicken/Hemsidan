@@ -112,3 +112,20 @@ Officiell dokumentation:
    motsvarande officiella profil. Äldre inlägg visas inte i detta intervall.
 4. Gör två testköp kopplade till olika mottagna leveranser med olika
    inköpskostnad och jämför bruttovinsten.
+
+## Uppdatering: testleveranser för Stripe-testköp
+
+Efter ordinarie inköpskostnadsmigration **60000** kör
+[`20261128080000_allow_test_delivery_costs.sql`](./migrations/20261128080000_allow_test_delivery_costs.sql)
+i Supabase SQL Editor. Publicera sedan uppdaterade `personal.html`,
+`personal.js` och `personal.css` från `ai/john`.
+
+- Inköpspartiväljaren är nu normalstor (46 px hög).
+- Mottagna leveranser med `is_test=true` och registrerad kostnad
+  kan väljas för **Stripe-testordrar** och märks **TEST** i menyn.
+- Även vanliga mottagna leveranser kan fortfarande väljas vid testköp.
+  Detta påverkar bara kostnadskopplingen; inventering/testdata bör hållas åtskilda.
+- Plats och artikel måste matcha ordern, och lageruttag sker fortfarande
+  först vid **Packad**.
+- Gamla redan packade ordrar tilldelas inte kostnad retroaktivt;
+  prova med en **ny** order efter installationen.
