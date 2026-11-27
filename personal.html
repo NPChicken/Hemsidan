@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Inloggning för SpinRoll UF:s personal.">
     <title>Personal | SpinRoll UF</title>
-    <link rel="stylesheet" href="personal.css?v=20261127-stock-archive">
-    <script type="module" src="personal.js?v=20261127-stock-errorfix"></script>
+    <link rel="stylesheet" href="personal.css?v=20261127-prices">
+    <script type="module" src="personal.js?v=20261127-prices"></script>
 </head>
 <body>
     <header class="personal-header">
@@ -154,6 +154,16 @@
                         <div id="received-list" class="incoming-list"></div>
                     </section>
                 </div>
+                <section class="stock-panel stock-prices-panel" aria-labelledby="stock-prices-title">
+                    <div class="stock-prices-heading">
+                        <div>
+                            <h3 id="stock-prices-title">Artikelpriser &amp; kampanjer</h3>
+                            <p class="stock-muted">Pris i kronor. Kampanjpriset slutar automatiskt att gälla vid angiven tid.</p>
+                        </div>
+                    </div>
+                    <p class="stock-muted">OBS: Priserna måste även kopplas till Stripe-kassans Cloudflare Worker innan kunderna debiteras dessa priser.</p>
+                    <div id="stock-prices-list" class="stock-prices-list"></div>
+                </section>
                 <section class="stock-panel stock-locations-panel" aria-labelledby="stock-locations-title">
                     <h3 id="stock-locations-title">Lagerplatser</h3>
                     <p class="stock-muted">Alla aktiva platser och deras beskrivningar. Platser utan saldo eller väntande leveranser kan tas bort.</p>
