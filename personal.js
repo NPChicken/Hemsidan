@@ -99,6 +99,8 @@ function safeDate(date) {
 
 const STATUS_LABELS = { new: "Ny", packing: "Packas", shipped: "Skickad", cancelled: "Avbruten" };
 let cachedOrders = [];
+let orderStockAllocations = [];
+let orderLocationsFeatureAvailable = false;
 let activeOrderFilter = "all";
 let orderFetchSequence = 0;
 
@@ -155,6 +157,84 @@ function buildOrderCard(order) {
             " · " + kronor(item.unit_amount, item.currency) + "/st"));
     }
     content.append(emailRow, shippingRow, status, products);
+
+    // Betald order: lagerplatsen som valdes automatiskt vid reservationen kan
+    // flyttas här innan ordern skickas. Endast databasen får ändra saldon.
+    if (order.payment_status === "paid" && order.stripe_mode === "test" &&
+        orderLocationsFeatureAvailable) {
+        const allocations = orderStockAllocations.filter(row => row.order_id === order.id);
+        if (allocations.length) {
+            const total = allocations.reduce((sum, row) => sum + row.quantity, 0);
+            const locationNames = allocations.map(row =>
+                stockName(row.location_id, stockLocations) + " (" + row.quantity + " st)").join(", ");
+            const section = element("div", "order-location-controls");
+            section.appendChild(element("strong", "", "Lagerplats för order"));
+            section.appendChild(element("p", "order-location-current",
+                "Reserverat från: " + locationNames));
+            if (["new", "packing"].includes(order.fulfillment_status)) {
+                const label = element("label", "", "Välj lagerplats för samtliga " + total + " exemplar");
+                const select = element("select", "order-location-select");
+                const selectId = "order-location-" + order.id;
+                select.id = selectId;
+                label.htmlFor = selectId;
+                const blank = element("option", "", "Välj lagerplats…");
+                blank.value = "";
+                select.appendChild(blank);
+                const itemId = allocations[0].item_id;
+                const activeLocations = stockLocations.filter(loc => !loc.archived_at);
+                for (const location of activeLocations) {
+                    const free = stockLevels.find(row =>
+                        row.item_id === itemId && row.location_id === location.id)?.quantity ?? 0;
+                    const allocatedHere = allocations.filter(row => row.location_id === location.id)
+                        .reduce((sum, row) => sum + row.quantity, 0);
+                    const eligible = free + allocatedHere >= total;
+                    const opt = element("option", "", location.name + " · " + free + " lediga" +
+                        (allocatedHere ? " + " + allocatedHere + " reserverade" : "") +
+                        (eligible ? "" : " (för få)"));
+                    opt.value = location.id;
+                    opt.disabled = !eligible;
+                    select.appendChild(opt);
+                }
+                const current = allocations.length === 1 ? allocations[0].location_id : "";
+                select.value = current;
+                const save = element("button", "save-order-status", "Spara lagerplats");
+                save.type = "button";
+                const updateSave = () => {
+                    save.disabled = !select.value || select.value === current;
+                };
+                select.addEventListener("change", updateSave);
+                updateSave();
+                save.addEventListener("click", async () => {
+                    if (save.disabled) return;
+                    select.disabled = true;
+                    save.disabled = true;
+                    save.textContent = "Sparar…";
+                    orderNotice();
+                    try {
+                        const { error } = await supabase.rpc("assign_paid_order_stock_location", {
+                            p_order_id: order.id,
+                            p_location_id: select.value
+                        });
+                        if (error) throw error;
+                        await Promise.all([loadStock(), loadOrders({ keepNotice: true })]);
+                        orderNotice("Orderns lagerplats har uppdaterats och lagersaldona har justerats.");
+                    } catch (error) {
+                        orderNotice("Kunde inte byta lagerplats: " +
+                            (error.message || "Okänt fel") + ". Uppdatera listan och försök igen.", true);
+                        console.error("Order stock location reassignment failed:", error);
+                        select.disabled = false;
+                        save.textContent = "Spara lagerplats";
+                        updateSave();
+                    }
+                });
+                section.append(label, select, save);
+            } else {
+                section.appendChild(element("p", "stock-muted",
+                    "Ordern är skickad. Lagerplatsen kan inte längre ändras."));
+            }
+            content.appendChild(section);
+        }
+    }
 
     // Skrivning görs enbart med en autentiserad RPC med behörighetskontroll i databasen.
     if (order.payment_status === "paid" && order.stripe_mode === "test" &&
@@ -316,6 +396,15 @@ async function loadOrders({ keepNotice = false } = {}) {
         if (error) throw error;
         if (seq !== orderFetchSequence || $("staff-dashboard").hidden) return;
         cachedOrders = data || [];
+        // Treat missing RPC as a migration not yet installed, not as empty data.
+        // Never show an editable allocation based on incomplete information.
+        const allocations = await supabase.rpc("list_paid_order_stock_allocations");
+        if (seq !== orderFetchSequence || $("staff-dashboard").hidden) return;
+        orderLocationsFeatureAvailable = !allocations.error;
+        orderStockAllocations = allocations.error ? [] : (allocations.data || []);
+        if (allocations.error) {
+            console.warn("Order stock locations unavailable (migration missing?):", allocations.error.message);
+        }
         renderOrderList();
     } catch (error) {
         if (seq !== orderFetchSequence) return;
