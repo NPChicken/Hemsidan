@@ -401,13 +401,28 @@ function renderCatalogPriceForms() {
         sale.value = priceToInput(saved?.sale_price_ore);
         sale.placeholder = "199,00 (valfritt)";
 
+        // Svensk datumordning oavsett webbläsarens regionala inställningar.
         const until = element("input");
         until.id = "sale-until-" + item.id;
-        until.type = "datetime-local";
+        until.type = "text";
+        until.inputMode = "numeric";
+        until.placeholder = "ÅÅÅÅ-MM-DD";
+        until.maxLength = 10;
+        until.pattern = "[0-9]{4}-[0-9]{2}-[0-9]{2}";
+
+        const untilTime = element("input");
+        untilTime.id = "sale-until-time-" + item.id;
+        untilTime.type = "text";
+        untilTime.inputMode = "numeric";
+        untilTime.placeholder = "HH:MM";
+        untilTime.maxLength = 5;
+        untilTime.pattern = "[0-9]{2}:[0-9]{2}";
         if (saved?.sale_ends_at) {
             const end = new Date(saved.sale_ends_at);
             const local = new Date(end.getTime() - end.getTimezoneOffset() * 60000);
-            until.value = local.toISOString().slice(0, 16);
+            const [date, time] = local.toISOString().slice(0, 16).split("T");
+            until.value = date;
+            untilTime.value = time;
         }
 
         const key = element("select");
@@ -431,7 +446,8 @@ function renderCatalogPriceForms() {
         };
         field(regular, "Ordinarie pris (kr)");
         field(sale, "Kampanjpris (kr)");
-        field(until, "Kampanjen slutar (lokal tid)");
+        field(until, "Kampanjen slutar – datum (ÅÅÅÅ-MM-DD)");
+        field(untilTime, "Kampanjen slutar – klockslag (HH:MM)");
         field(key, "Website (butikskoppling)");
         const hint = element("p", "stock-muted",
             "Kampanjpris och slutdatum ska fyllas i tillsammans. Lämna båda tomma för att ta bort kampanjen. " +
@@ -451,12 +467,24 @@ function renderCatalogPriceForms() {
             event.preventDefault();
             const regularOre = inputToOre(regular.value);
             const saleOre = sale.value.trim() ? inputToOre(sale.value) : null;
-            const saleDate = until.value ? new Date(until.value) : null;
+            const hasDate = until.value.trim() !== "";
+            const hasTime = untilTime.value.trim() !== "";
+            const datetime = hasDate && hasTime ? until.value.trim() + "T" + untilTime.value.trim() : "";
+            const saleDate = datetime ? new Date(datetime) : null;
+            const validDate = !datetime || (
+                /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(datetime) &&
+                Number.isFinite(saleDate.getTime()) &&
+                [saleDate.getFullYear(), String(saleDate.getMonth() + 1).padStart(2, "0"),
+                 String(saleDate.getDate()).padStart(2, "0")].join("-") +
+                 "T" + String(saleDate.getHours()).padStart(2, "0") +
+                 ":" + String(saleDate.getMinutes()).padStart(2, "0") === datetime
+            );
             if (regularOre == null || regularOre < 1 || regularOre > 100000000 ||
-                Boolean(sale.value.trim()) !== Boolean(until.value) ||
+                hasDate !== hasTime ||
+                Boolean(sale.value.trim()) !== hasDate || !validDate ||
                 (saleOre != null && (saleOre < 1 || saleOre >= regularOre)) ||
-                (saleDate && (!Number.isFinite(saleDate.getTime()) || saleDate <= new Date()))) {
-                const msg = "Kontrollera priset. Kampanjpris måste vara lägre än ordinarie pris och ha ett framtida slutdatum.";
+                (saleDate && saleDate <= new Date())) {
+                const msg = "Kontrollera priset och skriv slutdatum som ÅÅÅÅ-MM-DD och klockslag som HH:MM. Kampanjpriset måste vara lägre än ordinarie pris.";
                 feedback.textContent = msg;
                 stockMessage(msg, true);
                 return;
