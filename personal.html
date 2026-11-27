@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Inloggning för SpinRoll UF:s personal.">
     <title>Personal | SpinRoll UF</title>
-    <link rel="stylesheet" href="personal.css?v=20261127-tile-stock">
-    <script type="module" src="personal.js?v=20261127-tile-stock"></script>
+    <link rel="stylesheet" href="personal.css?v=20261127-tile-orders">
+    <script type="module" src="personal.js?v=20261127-tile-orders"></script>
 </head>
 <body>
     <header class="personal-header">
@@ -94,6 +94,9 @@
                     <div class="tile-meta">01 / FÖRSÄLJNING</div>
                     <h2>Beställningar</h2>
                     <p>Bekräftade testbetalningar från Stripe.</p>
+                    <div class="tile-order-overview" id="tile-order-overview" aria-label="Sammanfattning av nya beställningar" aria-live="polite">
+                        <span class="tile-stock-placeholder">Hämtar beställningar…</span>
+                    </div>
                     <span class="tile-status" id="order-count">Laddar…</span>
                 </article>
                 <article class="dashboard-tile">
