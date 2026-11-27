@@ -120,3 +120,46 @@ a { color: inherit; }
     .order-card { padding: 17px; }
     .orders-heading .outline-button { width: 100%; }
 }
+
+/* Orderfilter och säkert hanterad leveransstatus */
+.order-filters { display: flex; gap: 9px; flex-wrap: wrap; margin: 0 0 20px; }
+.order-filter {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 10px 16px; background: transparent; color: var(--cream);
+    border: 1px solid var(--line); border-radius: 999px; font-size: 13px; font-weight: 700;
+}
+.order-filter:hover, .order-filter:focus-visible { border-color: var(--cream); background: rgba(242,201,158,.1); }
+.order-filter.is-active { color: var(--wine); border-color: var(--cream); background: var(--cream); }
+.order-filter span { font-size: 12px; opacity: .8; }
+.order-action-message {
+    margin: 0 0 16px; padding: 14px 17px; border: 1px solid #99ba9c;
+    border-radius: 10px; color: #f0fff0; background: #34523b; font-size: 13px; line-height: 1.5;
+}
+.order-action-message.is-error { border-color: #e99b9b; color: #ffdbd6; background: #6d2025; }
+.fulfillment-badge {
+    padding: 7px 12px; border-radius: 999px; font-size: 12px;
+    font-weight: 700; white-space: nowrap; border: 1px solid var(--line);
+}
+.fulfillment-badge.status-new { color: #ffe0b7; background: #783e1d; }
+.fulfillment-badge.status-packing { color: #fcf1b7; background: #726018; }
+.fulfillment-badge.status-shipped { color: #d5f7dc; background: #2b5538; }
+.fulfillment-badge.status-cancelled { color: #f1c7cb; background: #61303b; }
+.order-status-controls {
+    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 11px;
+    margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line);
+}
+.order-status-controls label { width: 100%; font-size: 13px; font-weight: 700; color: #fff; }
+.order-status-select {
+    flex: 1 1 160px; min-width: 0; padding: 11px 14px; border: 1px solid #c79b8c;
+    border-radius: 8px; background: #380713; color: #fff; font: inherit; font-size: 14px;
+}
+.save-order-status {
+    padding: 12px 17px; border: 0; border-radius: 8px;
+    background: var(--cream); color: var(--wine); font: inherit; font-size: 14px; font-weight: 800;
+}
+.save-order-status:hover:not(:disabled) { background: #ffe0ba; }
+.save-order-status:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 590px) {
+    .order-filter { padding: 9px 12px; }
+    .order-status-select, .save-order-status { flex: 1 1 100%; }
+}

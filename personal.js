@@ -32,6 +32,7 @@ function showMessage(message = "", kind = "error") {
 
 function showAuthView(id) {
     orderFetchSequence++;
+    cachedOrders = [];
     $("auth-layout").hidden = false;
     $("staff-dashboard").hidden = true;
     $("auth-loading").hidden = true;
@@ -64,6 +65,18 @@ function safeDate(date) {
     }).format(new Date(date));
 }
 
+const STATUS_LABELS = { new: "Ny", packing: "Packas", shipped: "Skickad", cancelled: "Avbruten" };
+let cachedOrders = [];
+let activeOrderFilter = "all";
+let orderFetchSequence = 0;
+
+function orderNotice(message, isError = false) {
+    const node = $("order-action-message");
+    node.textContent = message;
+    node.className = "order-action-message" + (isError ? " is-error" : "");
+    node.hidden = !message;
+}
+
 function buildOrderCard(order) {
     const card = element("article", "order-card");
     const heading = element("div", "order-card-top");
@@ -77,10 +90,13 @@ function buildOrderCard(order) {
     const name = element("strong", "", order.customer_name || "Namn saknas");
     const amount = element("strong", "order-amount", kronor(order.amount_total, order.currency));
     meta.append(name, amount);
+    const statusBadge = element("span", "fulfillment-badge status-" + order.fulfillment_status,
+        STATUS_LABELS[order.fulfillment_status] || order.fulfillment_status);
+    meta.append(statusBadge);
     heading.append(summary, meta);
 
     const details = element("details", "order-details");
-    const toggle = element("summary", "", "Visa kunduppgifter och produkter");
+    const toggle = element("summary", "", "Visa kunduppgifter och hantera order");
     const content = element("div", "order-detail-content");
     const emailRow = element("p", "", "E-post: ");
     if (order.customer_email) {
@@ -92,9 +108,7 @@ function buildOrderCard(order) {
     }
     const status = element("p", "", "Betalning: " +
         (order.payment_status === "paid" ? "Betald" : order.payment_status) +
-        " · Leverans: " + ({
-            new: "Ny", packing: "Packas", shipped: "Skickad", cancelled: "Avbruten"
-        }[order.fulfillment_status] || order.fulfillment_status));
+        " · Leverans: " + (STATUS_LABELS[order.fulfillment_status] || order.fulfillment_status));
     const shipping = [
         order.shipping_name, order.shipping_address_line1,
         order.shipping_address_line2,
@@ -109,39 +123,116 @@ function buildOrderCard(order) {
             " · " + kronor(item.unit_amount, item.currency) + "/st"));
     }
     content.append(emailRow, shippingRow, status, products);
+
+    // Skrivning görs enbart med en autentiserad RPC med behörighetskontroll i databasen.
+    if (order.payment_status === "paid" && order.stripe_mode === "test" &&
+        ["new", "packing", "shipped"].includes(order.fulfillment_status)) {
+        const controls = element("div", "order-status-controls");
+        const label = element("label", "", "Ändra leveransstatus");
+        const select = element("select", "order-status-select");
+        const selectId = "order-status-" + order.id;
+        select.id = selectId;
+        label.htmlFor = selectId;
+        for (const [value, text] of [["new", "Ny"], ["packing", "Packas"], ["shipped", "Skickad"]]) {
+            const option = element("option", "", text);
+            option.value = value;
+            option.selected = value === order.fulfillment_status;
+            select.appendChild(option);
+        }
+        const save = element("button", "save-order-status", "Spara status");
+        save.type = "button";
+        save.disabled = true;
+        select.addEventListener("change", () => {
+            save.disabled = select.value === order.fulfillment_status;
+        });
+        save.addEventListener("click", async () => {
+            if (save.disabled || select.value === order.fulfillment_status) return;
+            const nextStatus = select.value;
+            select.disabled = true;
+            save.disabled = true;
+            save.textContent = "Sparar…";
+            orderNotice();
+            try {
+                const { error } = await supabase.rpc("set_order_fulfillment_status", {
+                    p_order_id: order.id,
+                    p_new_status: nextStatus,
+                    p_expected_status: order.fulfillment_status
+                });
+                if (error) throw error;
+                orderNotice("Orderns status har ändrats till " + STATUS_LABELS[nextStatus] + ".");
+                await loadOrders({ keepNotice: true });
+            } catch (error) {
+                orderNotice("Status kunde inte sparas. Kontrollera att den nya SQL-funktionen har installerats och försök igen.", true);
+                console.error("Could not update fulfillment status:", error.message);
+                select.disabled = false;
+                save.disabled = select.value === order.fulfillment_status;
+                save.textContent = "Spara status";
+            }
+        });
+        controls.append(label, select, save);
+        content.appendChild(controls);
+    }
+
     details.append(toggle, content);
     card.append(heading, details);
     return card;
 }
 
-let orderFetchSequence = 0;
-async function loadOrders() {
+function renderOrderList() {
+    const counts = { all: cachedOrders.length, new: 0, packing: 0, shipped: 0 };
+    cachedOrders.forEach(order => {
+        if (Object.hasOwn(counts, order.fulfillment_status)) {
+            counts[order.fulfillment_status] += 1;
+        }
+    });
+    for (const button of document.querySelectorAll("[data-order-filter]")) {
+        const selected = button.dataset.orderFilter === activeOrderFilter;
+        button.classList.toggle("is-active", selected);
+        button.setAttribute("aria-pressed", String(selected));
+    }
+    for (const count of document.querySelectorAll("[data-count-for]")) {
+        count.textContent = String(counts[count.dataset.countFor] ?? 0);
+    }
+    $("order-count").textContent = cachedOrders.length +
+        (cachedOrders.length === 50 ? "+ ordrar" : " ordrar");
+
+    const visible = activeOrderFilter === "all"
+        ? cachedOrders
+        : cachedOrders.filter(order => order.fulfillment_status === activeOrderFilter);
+    const message = $("orders-message");
+    $("orders-list").replaceChildren();
+    if (!visible.length) {
+        message.hidden = false;
+        message.textContent = cachedOrders.length
+            ? "Inga beställningar har den valda statusen."
+            : "Inga testordrar än. När en testbetalning görs visas den här.";
+        return;
+    }
+    message.hidden = true;
+    const fragment = document.createDocumentFragment();
+    visible.forEach(order => fragment.appendChild(buildOrderCard(order)));
+    $("orders-list").appendChild(fragment);
+}
+
+async function loadOrders({ keepNotice = false } = {}) {
     const seq = ++orderFetchSequence;
     const button = $("refresh-orders");
     const message = $("orders-message");
     button.disabled = true;
+    if (!keepNotice) orderNotice();
     message.hidden = false;
     message.textContent = "Hämtar beställningar…";
     $("orders-list").replaceChildren();
     try {
         const { data, error } = await supabase.from("orders")
-            .select("id, stripe_checkout_session_id, stripe_created_at, created_at, customer_name, customer_email, shipping_name, shipping_address_line1, shipping_address_line2, shipping_postal_code, shipping_city, shipping_country, amount_total, currency, payment_status, fulfillment_status, order_items (product_name, quantity, unit_amount, currency)")
+            .select("id, stripe_checkout_session_id, stripe_created_at, created_at, customer_name, customer_email, shipping_name, shipping_address_line1, shipping_address_line2, shipping_postal_code, shipping_city, shipping_country, amount_total, currency, payment_status, fulfillment_status, stripe_mode, order_items (product_name, quantity, unit_amount, currency)")
             .eq("stripe_mode", "test")
             .order("created_at", { ascending: false })
             .range(0, 49);
         if (error) throw error;
         if (seq !== orderFetchSequence || $("staff-dashboard").hidden) return;
-        const orders = data || [];
-        $("order-count").textContent = orders.length === 0 ? "0 ordrar" :
-            orders.length + (orders.length === 50 ? "+ ordrar" : " ordrar");
-        if (!orders.length) {
-            message.textContent = "Inga testordrar än. När webhooken är aktiv och en testbetalning görs visas den här.";
-            return;
-        }
-        message.hidden = true;
-        const fragment = document.createDocumentFragment();
-        orders.forEach(order => fragment.appendChild(buildOrderCard(order)));
-        $("orders-list").appendChild(fragment);
+        cachedOrders = data || [];
+        renderOrderList();
     } catch (error) {
         if (seq !== orderFetchSequence) return;
         message.textContent = "Kunde inte hämta beställningar. Kontrollera behörigheten och försök igen.";
@@ -151,7 +242,14 @@ async function loadOrders() {
         if (seq === orderFetchSequence) button.disabled = false;
     }
 }
+
 $("refresh-orders").addEventListener("click", () => { void loadOrders(); });
+document.querySelectorAll("[data-order-filter]").forEach(button => {
+    button.addEventListener("click", () => {
+        activeOrderFilter = button.dataset.orderFilter;
+        renderOrderList();
+    });
+});
 
 function showDashboard(user) {
     const email = user.email || "";
