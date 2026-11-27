@@ -194,7 +194,10 @@ begin
     if not found then
         raise exception 'Reservation saknas' using errcode = 'P0002';
     end if;
+    -- En session kan ha löpt ut innan Worker hunnit binda den.
+    -- Då tillåts återföring från signerad Stripe expired-webhook på metadata-ID.
     if p_stripe_session_id is not null and
+       v_res.stripe_checkout_session_id is not null and
        v_res.stripe_checkout_session_id is distinct from p_stripe_session_id then
         raise exception 'Fel Stripe-session' using errcode = '23514';
     end if;
