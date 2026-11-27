@@ -340,3 +340,37 @@ a { color: inherit; }
     font-weight: 800;
     letter-spacing: .08em;
 }
+
+/* Paid-order warehouse selection. Mirrors the existing order status controls. */
+.order-location-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+}
+.order-location-controls > strong,
+.order-location-controls > label,
+.order-location-controls > .order-location-current {
+    width: 100%;
+}
+.order-location-controls > strong { color: #fff; font-size: 15px; }
+.order-location-controls > label { color: #fff; font-size: 13px; font-weight: 700; }
+.order-location-controls .order-location-current { color: var(--cream); margin: 0 0 5px; }
+.order-location-select {
+    flex: 1 1 260px;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #380713;
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+}
+.order-location-controls .save-order-status { flex: 0 0 auto; }
+@media (max-width: 650px) {
+    .order-location-controls .save-order-status { flex: 1 1 100%; }
+}
