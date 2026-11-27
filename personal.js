@@ -410,13 +410,18 @@ function renderCatalogPriceForms() {
             until.value = local.toISOString().slice(0, 16);
         }
 
-        const key = element("input");
+        const key = element("select");
         key.id = "storefront-key-" + item.id;
-        key.type = "text";
-        key.maxLength = 40;
-        key.pattern = "[a-z0-9_-]{1,40}";
-        key.value = saved?.storefront_key || "";
-        key.placeholder = "t.ex. exile (valfritt)";
+        for (const [value, title] of [
+            ["", "Ingen webbkoppling"],
+            ["website", "website – hemsidan och kassan"]
+        ]) {
+            const option = element("option", "", title);
+            option.value = value;
+            key.appendChild(option);
+        }
+        // Acceptera också tidigare inställningar innan SQL-migrationen körts.
+        key.value = saved?.storefront_key === "exile" ? "website" : (saved?.storefront_key || "");
 
         const fields = element("div", "stock-price-fields");
         const field = (node, title) => {
@@ -427,10 +432,10 @@ function renderCatalogPriceForms() {
         field(regular, "Ordinarie pris (kr)");
         field(sale, "Kampanjpris (kr)");
         field(until, "Kampanjen slutar (lokal tid)");
-        field(key, "Butikskoppling (produkt-ID)");
+        field(key, "Website (butikskoppling)");
         const hint = element("p", "stock-muted",
             "Kampanjpris och slutdatum ska fyllas i tillsammans. Lämna båda tomma för att ta bort kampanjen. " +
-            "Använd butikens produkt-ID, till exempel exile, för artiklar som säljs på hemsidan.");
+            "Välj website för artikeln som ska styra priset på startsidan, Exile-sidan, i kundvagnen och Stripe-kassan.");
         const status = element("p", "stock-cost", saved?.sale_price_ore && saved?.sale_ends_at &&
             new Date(saved.sale_ends_at) > new Date()
             ? "Aktuellt pris: " + kronor(saved.sale_price_ore)
