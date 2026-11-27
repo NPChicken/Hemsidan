@@ -87,3 +87,15 @@ Kör [`20261127210000_cleanup_received_zero_stock.sql`](./migrations/20261127210
 Publicera senaste `personal.js` och `personal.html`.
 
 Knappen **Rensa testleverans** visas nu när just den artikelns saldo på den tidigare lagerplatsen är **0**, även om platsen inte hittas bland lagerplatserna. SQL kräver adminroll, mottagen leverans och nollsaldo i databasen. Den rensar endast leveransens status (till `voided`) och loggar åtgärden; den ändrar inte lagersaldot. Om saldo är större än noll behövs i stället vanlig lageråterföring eller inventering efter kontroll. **Använd inte rensningen för verkliga mottagningar.**
+
+## Särskilj testleveranser från riktiga leveranser
+
+Kör [`20261127220000_test_delivery_classification.sql`](./migrations/20261127220000_test_delivery_classification.sql) **en gång efter** alla tidigare migrationer till och med `20261127210000_cleanup_received_zero_stock.sql`. Publicera även senaste `personal.html`, `personal.js` och `personal.css` från `ai/john`.
+
+I formuläret **Planera lagerbeställning** finns nu kryssrutan **Detta är en testleverans**. Den är omarkerad som standard. Flaggan `incoming_stock.is_test` sparas i Supabase av `add_incoming_stock`, som får den nya parametern `p_is_test`. Planerade och mottagna testleveranser får märkningen **TESTLEVERANS**. Befintliga leveranser räknas **inte** som test automatiskt (standardvärdet är `false`).
+
+**Rensa testleverans** visas endast på testmarkerade mottagna leveranser vars saldo på den ursprungliga platsen är noll. Den serverskyddade RPC:n kräver också `is_test = true`, nollsaldo och adminroll. Vanlig **Ångra mottagning** fortsätter att kunna korrigera lagersaldo, men rensning utan lagerpåverkan är spärrad för riktiga leveranser.
+
+För äldre, felaktiga testmottagningar finns **Markera äldre leverans som test** i listan över mottagna leveranser. Funktionen kräver adminroll, uttrycklig bekräftelse och loggar ändringen i `stock_test_classification_events`. Kontrollera att posten verkligen var ett test innan du använder knappen. När den markeras som test kan den rensas om saldot på ursprungsplatsen är noll.
+
+**Viktigt:** Installera SQL innan du publicerar den nya klientkoden. Den gamla `add_incoming_stock`-signaturen ersätts.
