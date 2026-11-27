@@ -58,7 +58,8 @@ export default {
             }
 
             const prices = await fetchPrices();
-            const product = prices.get(items[0].id);
+            // Produkt-ID exile i kundvagnen motsvarar hemsidans prisnyckel website.
+            const product = prices.get(items[0].id === "exile" ? "website" : items[0].id);
             if (!product || !Number.isSafeInteger(product.effective_price_ore) ||
                 product.effective_price_ore < 100 || product.effective_price_ore > 100000000 ||
                 typeof product.name !== "string" || !product.name.trim()) {
