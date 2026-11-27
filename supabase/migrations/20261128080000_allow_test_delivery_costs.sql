@@ -45,7 +45,7 @@ begin
 end;
 $fn$;
 
-create function public.set_order_fulfillment_status(
+create or replace function public.set_order_fulfillment_status(
     p_order_id uuid,p_new_status text,p_expected_status text
 )
 returns text language plpgsql security definer set search_path = ''
