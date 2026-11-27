@@ -53,6 +53,7 @@ function showAuthView(id) {
     $("stock-list").replaceChildren();
     $("incoming-list").replaceChildren();
     $("received-list").replaceChildren();
+    $("stock-locations-list").replaceChildren();
     $("stock-summary").replaceChildren();
     orderFetchSequence++;
     cachedOrders = [];
@@ -308,11 +309,51 @@ function stockName(id, list) {
     return list.find(entry => entry.id === id)?.name || "Okänd";
 }
 
+// Ta bort från det aktiva lagret genom arkivering. Historiska leveranser behålls.
+async function archiveStockEntry(kind, entry, button) {
+    const isItem = kind === "item";
+    const description = isItem ? "artikeln" : "lagerplatsen";
+    if (!window.confirm("Vill du ta bort " + description + ' "' + entry.name +
+        '"? Historiken sparas. Saldo måste vara 0 och inga leveranser får vänta.')) return;
+
+    button.disabled = true;
+    const oldLabel = button.textContent;
+    button.textContent = "Tar bort…";
+    stockMessage();
+    try {
+        const { error } = await supabase.rpc(isItem ? "archive_stock_item" : "archive_stock_location",
+            isItem ? { p_item_id: entry.id } : { p_location_id: entry.id });
+        if (error) throw error;
+        await loadStock();
+        stockMessage((isItem ? "Artikeln" : "Lagerplatsen") + " har tagits bort från det aktiva lagret.");
+    } catch (error) {
+        stockMessage("Kunde inte ta bort " + description + ": " + (error.message || "Okänt fel"), true);
+        console.error("Archive stock failed:", error.message);
+        button.disabled = false;
+        button.textContent = oldLabel;
+    }
+}
+
+function stockArchiveButton(kind, entry, reason = "") {
+    const button = element("button", "stock-archive-button",
+        kind === "item" ? "Ta bort artikel" : "Ta bort lagerplats");
+    button.type = "button";
+    if (reason) {
+        button.disabled = true;
+        button.title = reason;
+    } else {
+        button.addEventListener("click", () => { void archiveStockEntry(kind, entry, button); });
+    }
+    return button;
+}
+
 function renderStock() {
-    stockOptionList("stock-level-item", stockItems, "Välj artikel");
-    stockOptionList("incoming-item", stockItems, "Välj artikel");
-    stockOptionList("stock-level-location", stockLocations, "Välj lagerplats");
-    stockOptionList("incoming-location", stockLocations, "Välj lagerplats");
+    const activeItems = stockItems.filter(item => !item.archived_at);
+    const activeLocations = stockLocations.filter(location => !location.archived_at);
+    stockOptionList("stock-level-item", activeItems, "Välj artikel");
+    stockOptionList("incoming-item", activeItems, "Välj artikel");
+    stockOptionList("stock-level-location", activeLocations, "Välj lagerplats");
+    stockOptionList("incoming-location", activeLocations, "Välj lagerplats");
 
     const quantity = stockLevels.reduce((sum, x) => sum + x.quantity, 0);
     const pending = stockIncoming.filter(x => x.status === "planned");
@@ -320,14 +361,14 @@ function renderStock() {
     const received = stockIncoming.filter(x => x.status === "received");
     const knownPendingCost = pending.reduce((sum, x) => sum + (x.total_cost_ore ?? 0), 0);
     const knownReceivedCost = received.reduce((sum, x) => sum + (x.total_cost_ore ?? 0), 0);
-    $("stock-count").textContent = stockItems.length + " artiklar";
+    $("stock-count").textContent = activeItems.length + " artiklar";
     const summary = $("stock-summary");
     summary.replaceChildren();
     for (const [label, value] of [
-        ["Artiklar", stockItems.length],
+        ["Artiklar", activeItems.length],
         ["Antal i lager", quantity],
         ["På väg", pendingQuantity],
-        ["Lagerplatser", stockLocations.length],
+        ["Lagerplatser", activeLocations.length],
         ["Planerade inköp", kronor(knownPendingCost)],
         ["Mottagna inköp", kronor(knownReceivedCost)]
     ]) {
@@ -338,10 +379,10 @@ function renderStock() {
 
     const list = $("stock-list");
     list.replaceChildren();
-    if (!stockItems.length) {
+    if (!activeItems.length) {
         list.appendChild(element("p", "stock-muted", "Inga artiklar ännu. Börja med att lägga till en artikel och en lagerplats."));
     }
-    for (const item of stockItems) {
+    for (const item of activeItems) {
         const card = element("div", "stock-entry");
         const name = element("strong", "", item.name);
         if (item.sku) name.appendChild(element("small", "stock-sku", " · " + item.sku));
@@ -356,7 +397,33 @@ function renderStock() {
         }
         const total = stockLevels.filter(level => level.item_id === item.id).reduce((sum, x) => sum + x.quantity, 0);
         card.appendChild(element("div", "stock-total", "Totalt: " + total + " " + item.unit));
+        const hasPending = stockIncoming.some(delivery => delivery.item_id === item.id && delivery.status === "planned");
+        const reason = total > 0 ? "Artikeln har saldo kvar. Inventera till 0 först."
+            : hasPending ? "Artikeln har en kommande leverans." : "";
+        card.appendChild(stockArchiveButton("item", item, reason));
+        if (reason) card.appendChild(element("p", "stock-muted", reason));
         list.appendChild(card);
+    }
+
+    const locationsList = $("stock-locations-list");
+    locationsList.replaceChildren();
+    if (!activeLocations.length) {
+        locationsList.appendChild(element("p", "stock-muted", "Inga lagerplatser ännu. Lägg till en lagerplats nedan."));
+    }
+    for (const location of activeLocations) {
+        const card = element("div", "stock-entry");
+        card.appendChild(element("strong", "", location.name));
+        card.appendChild(element("p", "stock-muted", location.description || "Ingen beskrivning angiven."));
+        const used = stockLevels.filter(level => level.location_id === location.id)
+            .reduce((total, level) => total + level.quantity, 0);
+        card.appendChild(element("div", "stock-total", "Antal på platsen: " + used));
+        const hasPending = stockIncoming.some(delivery =>
+            delivery.location_id === location.id && delivery.status === "planned");
+        const reason = used > 0 ? "Platsen har saldo kvar. Inventera till 0 eller flytta lagret först."
+            : hasPending ? "Lagerplatsen har en kommande leverans." : "";
+        card.appendChild(stockArchiveButton("location", location, reason));
+        if (reason) card.appendChild(element("p", "stock-muted", reason));
+        locationsList.appendChild(card);
     }
 
     const incomingList = $("incoming-list");
@@ -430,8 +497,8 @@ async function loadStock() {
     stockMessage("Hämtar lagret…");
     try {
         const [items, locations, levels, incoming] = await Promise.all([
-            supabase.from("stock_items").select("id,name,sku,unit").order("name"),
-            supabase.from("stock_locations").select("id,name,description").order("name"),
+            supabase.from("stock_items").select("id,name,sku,unit,archived_at").order("name"),
+            supabase.from("stock_locations").select("id,name,description,archived_at").order("name"),
             supabase.from("stock_levels").select("item_id,location_id,quantity"),
             supabase.from("incoming_stock").select("id,item_id,location_id,quantity,total_cost_ore,supplier,expected_on,notes,status").order("created_at", {ascending:false}).limit(200)
         ]);
