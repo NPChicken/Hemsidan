@@ -776,14 +776,16 @@ function renderStock() {
         const location = stockLocations.find(x => x.id === delivery.location_id);
         const available = stockLevels.find(level =>
             level.item_id === delivery.item_id && level.location_id === delivery.location_id)?.quantity ?? 0;
-        if (location?.archived_at && available === 0) {
+        if (available === 0) {
             const cleanup = element("button", "stock-archive-button stock-reverse-button",
                 "Rensa testleverans");
             cleanup.type = "button";
             cleanup.addEventListener("click", async () => {
-                if (!window.confirm("Rensa denna mottagna leverans från den arkiverade lagerplatsen \"" +
-                    location.name + "\"?\n\nLagersaldot ändras INTE eftersom platsen redan är tömd. " +
-                    "Leveransen markeras som rensad men sparas i historiken. Gör bara detta om det var en felaktig testleverans.")) return;
+                if (!window.confirm("Rensa denna mottagna TESTLEVERANS (" +
+                    (item?.name || "Okänd artikel") + ") från " +
+                    (location?.name || "borttagen/okänd lagerplats") + "?\n\n" +
+                    "OBS! Lagersaldot ändras INTE. Rensa endast felaktiga testregistreringar " +
+                    "som redan har inventerats bort. Leveransen sparas i historiken.")) return;
                 cleanup.disabled = true;
                 cleanup.textContent = "Rensar…";
                 stockMessage();
@@ -804,7 +806,7 @@ function renderStock() {
                 }
             });
             card.appendChild(element("p", "stock-muted",
-                "Arkiverad lagerplats med 0 i saldo. Testleveransen kan rensas utan ny lagerjustering."));
+                "0 i saldo för artikeln på lagerplatsen. Administratörer kan rensa felaktiga testleveranser utan ny lagerjustering."));
             card.appendChild(cleanup);
             receivedList.appendChild(card);
             continue;
