@@ -308,3 +308,35 @@ a { color: inherit; }
     color: #e9bfc3;
     overflow-wrap: anywhere;
 }
+
+/* Tydlig, frivillig testmärkning av planerade och mottagna leveranser. */
+.stock-test-checkbox {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    gap: 11px;
+    cursor: pointer;
+    color: #ffe5d2;
+    font-weight: 700;
+    margin: 3px 0 9px !important;
+}
+.stock-form .stock-test-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: var(--cream);
+}
+.stock-test-badge {
+    display: inline-flex;
+    width: fit-content;
+    padding: 5px 8px;
+    margin-bottom: 10px;
+    border: 1px solid #f2c99e;
+    border-radius: 5px;
+    color: #f2c99e;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
