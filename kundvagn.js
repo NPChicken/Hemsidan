@@ -31,15 +31,22 @@ function sparaKundvagn() {
 
 function laggIKundvagn(id) {
     if (!PRODUKTER[id]) return;
+    const available = window.spinrollStock?.[id === "exile" ? "website" : id];
+    if (!Number.isSafeInteger(available)) {
+        alert("Lagerstatus är inte tillgänglig. Försök igen senare.");
+        return;
+    }
+    if (available <= (kundvagn[id] || 0)) {
+        alert(available === 0 ? "Produkten är slut i lager." :
+            "Det finns bara " + available + " exemplar kvar i lager.");
+        return;
+    }
     if (!Number.isSafeInteger(window.spinrollPrices?.[id === "exile" ? "website" : id]?.effective_price_ore)) {
         alert("Priset är inte tillgängligt just nu. Försök igen senare.");
         return;
     }
 
-    kundvagn[id] = Math.min(
-        10,
-        (kundvagn[id] || 0) + 1
-    );
+    kundvagn[id] = Math.min(10, available, (kundvagn[id] || 0) + 1);
 
     sparaKundvagn();
     oppnaKundvagn();
@@ -53,6 +60,15 @@ function andraAntal(id, skillnad) {
     if (nyttAntal <= 0) {
         delete kundvagn[id];
     } else {
+        const available = window.spinrollStock?.[id === "exile" ? "website" : id];
+        if (!Number.isSafeInteger(available)) {
+            alert("Lagerstatus kunde inte kontrolleras.");
+            return;
+        }
+        if (nyttAntal > available) {
+            alert("Endast " + available + " exemplar finns i lager.");
+            return;
+        }
         kundvagn[id] = Math.min(10, nyttAntal);
     }
 
@@ -116,12 +132,19 @@ function visaKundvagn() {
 
         const plus = document.createElement("button");
         plus.textContent = "+";
+        const available = window.spinrollStock?.[id === "exile" ? "website" : id];
+        plus.disabled = !Number.isSafeInteger(available) || available <= qty || qty >= 10;
         plus.addEventListener("click", () =>
             andraAntal(id, 1)
         );
+        const stockInfo = document.createElement("small");
+        stockInfo.textContent = Number.isSafeInteger(available)
+            ? (available === 0 ? "Slut i lager" : available + " tillgängliga")
+            : "Lagerstatus ej tillgänglig";
+        stockInfo.style.display = "block";
 
         kontroller.append(minus, antalText, plus);
-        rad.append(namn, pris, kontroller);
+        rad.append(namn, pris, stockInfo, kontroller);
         lista.appendChild(rad);
     }
 
@@ -129,9 +152,13 @@ function visaKundvagn() {
         lista.textContent = "Din kundvagn är tom.";
     }
 
-    const validPrices = Object.entries(kundvagn).every(([id, qty]) =>
-        PRODUKTER[id] && Number.isInteger(qty) && qty > 0 &&
-        Number.isSafeInteger(window.spinrollPrices?.[id === "exile" ? "website" : id]?.effective_price_ore));
+    const validPrices = Object.entries(kundvagn).every(([id, qty]) => {
+        const key = id === "exile" ? "website" : id;
+        return PRODUKTER[id] && Number.isInteger(qty) && qty > 0 && qty <= 10 &&
+            Number.isSafeInteger(window.spinrollPrices?.[key]?.effective_price_ore) &&
+            Number.isSafeInteger(window.spinrollStock?.[key]) &&
+            window.spinrollStock[key] >= qty;
+    });
     summa.textContent = validPrices ? `${new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK" }).format(total / 100)}` : "Pris ej tillgängligt";
     const checkoutButton = document.querySelector("#till-kassan");
     if (checkoutButton) checkoutButton.disabled = !validPrices || totaltAntal === 0;
@@ -145,9 +172,14 @@ function tillKassan() {
         return;
     }
 
-    if (!Object.keys(kundvagn).every(id =>
-        Number.isSafeInteger(window.spinrollPrices?.[id === "exile" ? "website" : id]?.effective_price_ore))) {
-        alert("Priset kunde inte hämtas. Försök igen senare.");
+    if (!Object.entries(kundvagn).every(([id, qty]) => {
+        const key = id === "exile" ? "website" : id;
+        return Number.isSafeInteger(window.spinrollPrices?.[key]?.effective_price_ore) &&
+            Number.isSafeInteger(window.spinrollStock?.[key]) &&
+            Number.isInteger(qty) && qty >= 1 && qty <= 10 && qty <= window.spinrollStock[key];
+    })) {
+        alert("Priset eller lagerstatusen har ändrats. Uppdatera kundvagnen innan du fortsätter.");
+        void window.spinrollRefreshStock?.();
         return;
     }
     window.location.href = "checkout.html";
@@ -217,4 +249,6 @@ document.addEventListener("DOMContentLoaded", () => {
     visaKundvagn();
     document.addEventListener("spinroll:prices-ready", visaKundvagn);
     document.addEventListener("spinroll:prices-error", visaKundvagn);
+    document.addEventListener("spinroll:stock-ready", visaKundvagn);
+    document.addEventListener("spinroll:stock-error", visaKundvagn);
 });
