@@ -358,7 +358,7 @@ function priceToInput(ore) {
 
 function inputToOre(value) {
     const text = String(value).trim().replace(",", ".");
-    if (!/^\\d{1,7}(\\.\\d{1,2})?$/.test(text)) return null;
+    if (!/^\d{1,7}(\.\d{1,2})?$/.test(text)) return null;
     const [whole, fractional = ""] = text.split(".");
     return Number(whole) * 100 + Number(fractional.padEnd(2, "0"));
 }
@@ -438,7 +438,10 @@ function renderCatalogPriceForms() {
                 : "Inget pris registrerat");
         const save = element("button", "stock-submit", "Spara pris");
         save.type = "submit";
-        form.append(heading, info, fields, hint, status, save);
+        const feedback = element("p", "stock-muted");
+        feedback.setAttribute("role", "status");
+        feedback.setAttribute("aria-live", "polite");
+        form.append(heading, info, fields, hint, status, save, feedback);
         form.addEventListener("submit", async event => {
             event.preventDefault();
             const regularOre = inputToOre(regular.value);
@@ -448,10 +451,14 @@ function renderCatalogPriceForms() {
                 Boolean(sale.value.trim()) !== Boolean(until.value) ||
                 (saleOre != null && (saleOre < 1 || saleOre >= regularOre)) ||
                 (saleDate && (!Number.isFinite(saleDate.getTime()) || saleDate <= new Date()))) {
-                stockMessage("Kontrollera priset. Kampanjpris måste vara lägre än ordinarie pris och ha ett framtida slutdatum.", true);
+                const msg = "Kontrollera priset. Kampanjpris måste vara lägre än ordinarie pris och ha ett framtida slutdatum.";
+                feedback.textContent = msg;
+                stockMessage(msg, true);
                 return;
             }
             save.disabled = true;
+            save.textContent = "Sparar…";
+            feedback.textContent = "Sparar pris…";
             stockMessage();
             try {
                 const { error } = await supabase.rpc("save_catalog_price", {
@@ -465,9 +472,13 @@ function renderCatalogPriceForms() {
                 await loadStock({ throwOnError: true });
                 stockMessage("Priset för " + item.name + " är sparat. Obs: Stripe Workern måste också använda pris-API:et.");
             } catch (error) {
-                stockMessage("Kunde inte spara pris: " + (error.message || "Okänt fel"), true);
+                const msg = "Kunde inte spara pris: " + (error.message || "Okänt fel");
+                feedback.textContent = msg;
+                stockMessage(msg, true);
                 console.error("Price save failed:", error);
+            } finally {
                 save.disabled = false;
+                save.textContent = "Spara pris";
             }
         });
         list.appendChild(form);
