@@ -16,7 +16,8 @@
 3. Ersätt Workerns kod med [`cloudflare/spinroll-stripe-api.js`](../cloudflare/spinroll-stripe-api.js) och **Deploy**. Behåll befintlig Cloudflare-secret `STRIPE_SECRET_KEY` med `sk_test_...`.
 4. Uppdatera/deploya Supabase Edge Function `stripe-orders` med [`supabase/functions/stripe-orders/index.ts`](./functions/stripe-orders/index.ts). Behåll befintliga server-Secrets `STRIPE_API_KEY` och `STRIPE_WEBHOOK_SIGNING_SECRET`.
 5. I Stripe Dashboard > Developers > Webhooks, se till att samma `stripe-orders`-endpoint tar emot **`checkout.session.completed`**, **`checkout.session.async_payment_succeeded`** och **`checkout.session.expired`**. Testläge ska användas.
-6. **Först därefter** publicera hemsidan från GitHub-branchen `ai/john` till `main`. Rensa webbläsarens cache vid behov.
+6. Se till att gamla, tidigare skapade Stripe Checkout-sessioner utan reservation har löpt ut eller avslutats innan ni börjar ta nya beställningar med den nya lösningen. Gamla sessioner har inget skydd för lagersaldo.
+7. **Först därefter** publicera hemsidan från GitHub-branchen `ai/john` till `main`. Rensa webbläsarens cache vid behov.
 
 **VIKTIGT:** Publicera inte bara frontend utan att uppdatera Worker och webhook. Om webhookens `checkout.session.expired`-händelser inte levereras fastnar reserverade exemplar som otillgängliga. Att frigöra reservationer baserat på tid utan att verifiera Stripe-sessionens status kan riskera översäljning och görs därför inte.
 
