@@ -989,6 +989,9 @@ async function loadStock({ throwOnError = false } = {}) {
         stockIncoming = incoming.data || [];
         catalogPrices = prices.data || [];
         renderStock();
+        // Orders and stock load independently when staff signs in.
+        // Refresh location choices once current stock levels arrive.
+        if (cachedOrders.length && orderLocationsFeatureAvailable) renderOrderList();
         stockMessage();
     } catch (error) {
         if (seq !== stockFetchSequence) return;
