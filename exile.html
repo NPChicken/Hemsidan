@@ -59,7 +59,8 @@
                 <p>Avslöja lögnerna, spela dina kort och försök lista ut vem som egentligen står på din sida.</p>
                 <div class="exile-purchase">
                     <strong class="exile-price" data-storefront-price="website">Hämtar pris…</strong>
-                    <button class="exile-buy" type="button" onclick="laggIKundvagn('exile')">Lägg i kundvagn</button>
+                <p class="storefront-stock-status" data-storefront-stock="website" role="status" aria-live="polite">Hämtar lagerstatus…</p>
+                    <button class="exile-buy" type="button" data-buy-product="exile" disabled onclick="laggIKundvagn('exile')">Lägg i kundvagn</button>
                 </div>
                 <p class="exile-checkout-note">Betalningen sker för närvarande i Stripes testmiljö.</p>
             </div>
@@ -397,8 +398,9 @@
         })();
     </script>
 
-    <script src="butikspriser.js?v=20261127-website" defer></script>
-    <script src="kundvagn.js?v=20261127-website" defer></script>
+    <script src="butikspriser.js?v=20261127-stock" defer></script>
+    <script src="butikslager.js?v=20261127-stock" defer></script>
+    <script src="kundvagn.js?v=20261127-stock" defer></script>
     <!-- Brevos formulärhantering och SpinRoll-popup -->
     <script>
         // Brevos reCAPTCHA utlöser denna händelse när användaren verifierats.
