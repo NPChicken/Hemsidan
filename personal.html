@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Inloggning för SpinRoll UF:s personal.">
     <title>Personal | SpinRoll UF</title>
-    <link rel="stylesheet" href="personal.css?v=20261127-orderstatus">
-    <script type="module" src="personal.js?v=20261127-recovery-fix"></script>
+    <link rel="stylesheet" href="personal.css?v=20261127-stock-1">
+    <script type="module" src="personal.js?v=20261127-stock-1"></script>
 </head>
 <body>
     <header class="personal-header">
@@ -100,8 +100,8 @@
                     <span class="tile-icon" aria-hidden="true">▣</span>
                     <div class="tile-meta">02 / PRODUKTION</div>
                     <h2>Lager</h2>
-                    <p>Håll koll på hur många spel som finns i lager.</p>
-                    <span class="tile-status">Kommer senare</span>
+                    <p>Artiklar, lagerplatser och planerade leveranser.</p>
+                    <span class="tile-status" id="stock-count">Laddar…</span>
                 </article>
                 <article class="dashboard-tile">
                     <span class="tile-icon" aria-hidden="true">⌁</span>
@@ -129,6 +129,76 @@
                 <p id="orders-message" class="orders-message" role="status" aria-live="polite">Hämtar beställningar…</p>
                 <div id="orders-list" class="orders-list"></div>
                 <p class="orders-caption">Visar och filtrerar de 50 senaste testordrarna. Status sparas endast när du klickar på Spara status.</p>
+            </section>
+            <section class="stock-section" aria-labelledby="stock-title">
+                <div class="orders-heading">
+                    <div>
+                        <p class="eyebrow">PRODUKTION / LAGER</p>
+                        <h2 id="stock-title">Lager &amp; leveranser</h2>
+                    </div>
+                    <button type="button" id="refresh-stock" class="outline-button">Uppdatera <span aria-hidden="true">↻</span></button>
+                </div>
+                <p class="stock-note" id="stock-message" role="status" aria-live="polite">Hämtar lagret…</p>
+                <div class="stock-summary" id="stock-summary"></div>
+                <div class="stock-layout">
+                    <section class="stock-panel">
+                        <h3>Lagret just nu</h3>
+                        <p class="stock-muted">Antal visas separat för varje lagerplats.</p>
+                        <div id="stock-list" class="stock-list"></div>
+                    </section>
+                    <section class="stock-panel">
+                        <h3>Kommande leveranser</h3>
+                        <p class="stock-muted">Registrerade beställningar som ännu inte kommit fram.</p>
+                        <div id="incoming-list" class="incoming-list"></div>
+                    </section>
+                </div>
+                <div class="stock-form-grid">
+                    <form id="stock-item-form" class="stock-panel stock-form">
+                        <h3>Ny artikel</h3>
+                        <label for="stock-item-name">Namn</label>
+                        <input id="stock-item-name" maxlength="120" required placeholder="Exile, spelbox, kortlek…">
+                        <label for="stock-item-sku">Artikelnummer (valfritt)</label>
+                        <input id="stock-item-sku" maxlength="100" placeholder="EXILE-001">
+                        <label for="stock-item-unit">Enhet</label>
+                        <input id="stock-item-unit" maxlength="24" value="st" required>
+                        <button type="submit" class="stock-submit">Lägg till artikel</button>
+                    </form>
+                    <form id="stock-location-form" class="stock-panel stock-form">
+                        <h3>Ny lagerplats</h3>
+                        <label for="stock-location-name">Namn på plats</label>
+                        <input id="stock-location-name" maxlength="100" required placeholder="Förråd, skolan, hylla A…">
+                        <label for="stock-location-description">Beskrivning (valfritt)</label>
+                        <input id="stock-location-description" maxlength="500" placeholder="Var finns platsen?">
+                        <button type="submit" class="stock-submit">Lägg till lagerplats</button>
+                    </form>
+                    <form id="stock-level-form" class="stock-panel stock-form">
+                        <h3>Inventera lagersaldo</h3>
+                        <p class="stock-muted">Ange hur många som faktiskt finns på den valda platsen.</p>
+                        <label for="stock-level-item">Artikel</label>
+                        <select id="stock-level-item" required></select>
+                        <label for="stock-level-location">Lagerplats</label>
+                        <select id="stock-level-location" required></select>
+                        <label for="stock-level-quantity">Antal i lager</label>
+                        <input id="stock-level-quantity" type="number" min="0" max="1000000" step="1" required>
+                        <button type="submit" class="stock-submit">Spara lagersaldo</button>
+                    </form>
+                    <form id="incoming-form" class="stock-panel stock-form">
+                        <h3>Planera lagerbeställning</h3>
+                        <label for="incoming-item">Artikel</label>
+                        <select id="incoming-item" required></select>
+                        <label for="incoming-location">Levereras till</label>
+                        <select id="incoming-location" required></select>
+                        <label for="incoming-quantity">Beställt antal</label>
+                        <input id="incoming-quantity" type="number" min="1" max="1000000" step="1" required>
+                        <label for="incoming-supplier">Leverantör (valfritt)</label>
+                        <input id="incoming-supplier" maxlength="150" placeholder="Leverantörens namn">
+                        <label for="incoming-date">Beräknad leverans</label>
+                        <input id="incoming-date" type="date">
+                        <label for="incoming-notes">Anteckning (valfritt)</label>
+                        <textarea id="incoming-notes" rows="2" maxlength="1000" placeholder="Till exempel orderreferens"></textarea>
+                        <button type="submit" class="stock-submit">Registrera kommande leverans</button>
+                    </form>
+                </div>
             </section>
             <p class="signed-in-note">Inloggad som <span id="staff-email"></span></p>
         </section>
