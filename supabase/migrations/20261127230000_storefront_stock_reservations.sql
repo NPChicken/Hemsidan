@@ -73,7 +73,8 @@ begin
     select cp.item_id into v_item
     from public.catalog_prices cp
     join public.stock_items si on si.id = cp.item_id
-    where cp.storefront_key = p_storefront_key and si.archived_at is null;
+    where cp.storefront_key = p_storefront_key and si.archived_at is null
+    for share of si;
     if not found then
         raise exception 'Produkten säljs inte i butiken' using errcode = '22023';
     end if;
