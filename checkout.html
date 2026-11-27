@@ -361,6 +361,19 @@
                 "checkout-meddelande"
             );
 
+            // Hämta lagersaldo på nytt innan en Stripe-session får skapas.
+            await window.spinrollRefreshStock();
+            const hasEnough = Object.entries(kundvagn).every(([id, qty]) => {
+                const key = id === "exile" ? "website" : id;
+                return Number.isInteger(qty) && qty >= 1 && qty <= 10 &&
+                    Number.isSafeInteger(window.spinrollStock?.[key]) &&
+                    window.spinrollStock[key] >= qty;
+            });
+            if (!hasEnough) {
+                meddelande.textContent = "Antalet i kundvagnen överstiger tillgängligt lager, eller lagerstatus kunde inte hämtas. Återgå till butiken och uppdatera kundvagnen.";
+                return;
+            }
+
             if (
                 !STRIPE_PUBLIC_KEY.startsWith("pk_test_") ||
                 !CHECKOUT_API.startsWith("https://")
@@ -417,9 +430,8 @@
             } catch (error) {
                 console.error(error);
 
-                meddelande.textContent =
-                    "Kunde inte ladda betalningen. " +
-                    "Kontrollera inställningarna och försök igen.";
+                meddelande.textContent = error?.message ||
+                    "Kunde inte ladda betalningen. Försök igen senare.";
             }
         }
 
@@ -429,7 +441,7 @@
 
         (async () => {
             const message = document.getElementById("checkout-meddelande");
-            await window.spinrollPricesReady;
+            await Promise.all([window.spinrollPricesReady, window.spinrollStockReady]);
             if (visaOrder()) {
                 await startaCheckout();
             } else if (Object.keys(kundvagn).length > 0) {
