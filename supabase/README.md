@@ -76,3 +76,21 @@ Detta hindrar framtida databasanrop med orderbehörighet, även om personen fort
 - Personalpanelen är i detta steg **endast en tom översikt**. Inga riktiga ordrar eller kunduppgifter hanteras.
 - **Testa RLS** med inloggad aktiv personal, ej godkänd inloggad person samt anonym användare; kontrollera både `SELECT` och att `INSERT/UPDATE/DELETE` nekas innan riktiga kunduppgifter används.
 - Planera gallring och hantering av personuppgifter enligt GDPR innan ni börjar ta emot skarpa beställningar.
+
+## Aktivera orderstatus och filtrering (2026-11-27)
+
+På grenen `ai/john` finns även [`20261127083000_order_fulfillment_rpc.sql`](./migrations/20261127083000_order_fulfillment_rpc.sql).
+**Den filen måste köras i Supabase innan knappen "Spara status" fungerar.**
+
+Om ni installerade första migrationen genom Supabase SQL Editor:
+
+1. Öppna [SQL Editor](https://supabase.com/dashboard/project/bevemgjmcdkcbtsxezsa/sql/new).
+2. Kopiera **hela** den nya SQL-filen (inte den ursprungliga migrationsfilen) och klistra in.
+3. Klicka på **Run**. Förväntat: `Success. No rows returned`.
+4. Publicera `personal.html`, `personal.js` och `personal.css` genom att slå ihop grenen `ai/john` med den publicerade GitHub Pages-grenen.
+5. Logga in på `spinroll.se/personal.html`. Du kan filtrera på Alla, Nya, Packas och Skickade. Öppna en order, välj ny status och tryck **Spara status**.
+
+**Säkerhet:** Ändringen använder en `SECURITY DEFINER`-RPC som kontrollerar `auth.uid()` mot aktiva personalmedlemmar, endast accepterar `new`, `packing` och `shipped`, och endast skriver till **betalda testordrar**. Förväntad tidigare status kontrolleras för att inte skriva över någon annans senaste ändring. Vanliga inloggade användare får fortfarande **inte** `UPDATE` på själva tabellen. Ordnar kan inte avbrytas via dessa kontroller.
+
+Tips: SQL Editor kör med administrativa databasrättigheter; att en fråga fungerar där bevisar inte att en vanlig inloggad person har behörighet. Testa gärna RPC-anropet som obehörig användare innan det används för skarpa ordrar.
+
