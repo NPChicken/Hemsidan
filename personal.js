@@ -1235,10 +1235,16 @@ function renderAnalyticsProducts() {
         const revenueStat = element("div");
         revenueStat.append(element("small", "", "Försäljning"),
             element("strong", "", analyticsMoney(revenue)));
+        const totalProfit = revenue - cost;
+        const quantity = Number(r.sold_quantity || 0);
         const profitStat = element("div");
-        profitStat.append(element("small", "", "Beräknad bruttovinst"),
-            element("strong", "", missingQty ? "Kostnad saknas" : analyticsMoney(revenue - cost)));
-        stats.append(revenueStat, profitStat);
+        profitStat.append(element("small", "", "Genomsnittlig vinst per sålt exemplar"),
+            element("strong", "", missingQty || !quantity
+                ? "Kostnad saknas" : analyticsMoney(totalProfit / quantity)));
+        const totalStat = element("div");
+        totalStat.append(element("small", "", "Total bruttovinst för " + quantity + " sålda"),
+            element("strong", "", missingQty ? "Ej komplett" : analyticsMoney(totalProfit)));
+        stats.append(revenueStat, profitStat, totalStat);
         card.append(header, stats);
         if (missingQty) card.appendChild(element("p", "analytics-warning",
             "Saknar verifierbar inköpskostnad för " + missingQty +
