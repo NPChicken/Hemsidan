@@ -26,41 +26,38 @@ where r.status = 'paid'
         ))
   );
 
--- Restore all earlier AUTOMATIC warehouse debits for open, released,
--- and paid-but-not-yet-assigned sessions.
--- released sessions have already had their debits restored by the old RPC.
-with returned as (
-    select l.item_id, l.location_id, sum(l.quantity)::integer as qty
-    from public.storefront_stock_reservation_lines l
-    join public.storefront_stock_reservations r on r.id=l.reservation_id
-    where r.status in ('reserved','paid') and not r.stock_allocated
-    group by l.item_id,l.location_id
-)
-update public.stock_levels sl
-set quantity = sl.quantity + returned.qty, updated_at = now()
-from returned
-where sl.item_id=returned.item_id and sl.location_id=returned.location_id
-  and sl.quantity + returned.qty <= 1000000;
-
--- Abort atomically if any legacy debits could not safely be restored.
+-- Old reservations used to reduce physical stock immediately.
+-- Verify all balances BEFORE restoring anything, so this migration is atomic.
 do $$
 declare v_bad integer;
 begin
     select count(*) into v_bad
     from (
-        select l.item_id,l.location_id,sum(l.quantity)::integer qty
+        select l.item_id,l.location_id,sum(l.quantity)::bigint qty
         from public.storefront_stock_reservation_lines l
         join public.storefront_stock_reservations r on r.id=l.reservation_id
         where r.status in ('reserved','paid') and not r.stock_allocated
         group by l.item_id,l.location_id
     ) t
     left join public.stock_levels sl
-    on sl.item_id=t.item_id and sl.location_id=t.location_id
-    where sl.item_id is null or sl.quantity > 1000000;
+      on sl.item_id=t.item_id and sl.location_id=t.location_id
+    where sl.item_id is null or sl.quantity + t.qty > 1000000;
     if v_bad > 0 then
-        raise exception 'Kunde inte återställa gamla reservationer utan att överskrida maxsaldo';
+        raise exception 'Kunde inte återställa gamla reservationer: lagersaldo saknas eller blir för stort';
     end if;
 end $$;
+
+with returned as (
+    select l.item_id,l.location_id,sum(l.quantity)::integer qty
+    from public.storefront_stock_reservation_lines l
+    join public.storefront_stock_reservations r on r.id=l.reservation_id
+    where r.status in ('reserved','paid') and not r.stock_allocated
+    group by l.item_id,l.location_id
+)
+update public.stock_levels sl
+set quantity=sl.quantity+returned.qty,updated_at=now()
+from returned
+where sl.item_id=returned.item_id and sl.location_id=returned.location_id;
 
 -- Old stock_events are historical and are not removed.
 -- A new event reason records each accounting migration restoration.
@@ -75,7 +72,7 @@ check(reason in ('manual_count','delivery','delivery_reversal',
 -- We cannot derive intermediate balances from a batched restore; snapshots
 -- reflect the final balance while keeping the corrected quantity audit.
 insert into public.stock_events(item_id,location_id,previous_quantity,new_quantity,reason,actor_id)
-select l.item_id,l.location_id,
+select t.item_id,t.location_id,
        sl.quantity - t.qty, sl.quantity,
        'checkout_migration_restore',null
 from (
@@ -85,10 +82,7 @@ from (
     where r.status in ('reserved','paid') and not r.stock_allocated
     group by l.item_id,l.location_id
 ) t
-join public.stock_levels sl on sl.item_id=t.item_id and sl.location_id=t.location_id
-join lateral (
-    select t.item_id,t.location_id
-) l on true;
+join public.stock_levels sl on sl.item_id=t.item_id and sl.location_id=t.location_id;
 
 delete from public.storefront_stock_reservation_lines l
 using public.storefront_stock_reservations r
@@ -174,6 +168,9 @@ begin
     set status='released',released_at=now() where id=p_reservation_id;
 end;
 $fn$;
+
+-- Function result type changes from the previous migration: replace its signature.
+drop function public.list_paid_order_stock_allocations();
 
 -- One aggregate row per order: allocated=false and location=null until staff
 -- explicitly chooses a warehouse. Historical multi-location shipments remain.
@@ -298,6 +295,41 @@ begin
     insert into public.order_stock_location_changes
       (order_id,item_id,from_locations,to_location_id,quantity,changed_by)
     values(p_order_id,v_item,v_previous,p_location_id,v_res.quantity,auth.uid());
+end;
+$fn$;
+
+-- Enforce that an order cannot be shipped before staff chooses a physical
+-- warehouse. This also prevents bypass by making a direct status RPC call.
+create or replace function public.set_order_fulfillment_status(
+    p_order_id uuid,p_new_status text,p_expected_status text
+)
+returns text language plpgsql security definer set search_path = ''
+as $fn$
+declare v_status text; v_session text;
+begin
+    perform public.assert_stock_staff();
+    if p_new_status is null or p_new_status not in ('new','packing','shipped')
+      or p_expected_status is null or p_expected_status not in ('new','packing','shipped') then
+        raise exception 'Ogiltig orderstatus' using errcode='22023';
+    end if;
+    select stripe_checkout_session_id into v_session
+    from public.orders where id=p_order_id and stripe_mode='test'
+       and payment_status='paid' for update;
+    if not found then raise exception 'Ordern saknas' using errcode='P0002'; end if;
+    if p_new_status='shipped' and exists (
+        select 1 from public.storefront_stock_reservations r
+        where r.stripe_checkout_session_id=v_session
+          and (r.status<>'paid' or not r.stock_allocated)
+    ) then
+        raise exception 'Välj lagerplats innan ordern kan skickas' using errcode='23514';
+    end if;
+    update public.orders
+    set fulfillment_status=p_new_status,updated_at=now()
+    where id=p_order_id and fulfillment_status=p_expected_status
+       and stripe_mode='test' and payment_status='paid'
+    returning fulfillment_status into v_status;
+    if not found then raise exception 'Ordern har ändrats. Ladda om och försök igen.' using errcode='P0002'; end if;
+    return v_status;
 end;
 $fn$;
 
