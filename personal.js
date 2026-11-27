@@ -169,7 +169,9 @@ function buildOrderCard(order) {
             const section = element("div", "order-location-controls");
             section.appendChild(element("strong", "", "Lagerplats för order"));
             const description = isAllocated
-                ? "Plockas från: " + allocations.map(row =>
+                ? (order.fulfillment_status === "shipped"
+                    ? "Skickad – slutligt uttag från: "
+                    : "Plockas från: ") + allocations.map(row =>
                     stockName(row.location_id, stockLocations) + " (" + row.quantity + " st)").join(", ")
                 : total + " exemplar reserverade centralt – inget lager har belastats.";
             section.appendChild(element("p", "order-location-current", description));
@@ -240,7 +242,7 @@ function buildOrderCard(order) {
 
     // Skrivning görs enbart med en autentiserad RPC med behörighetskontroll i databasen.
     if (order.payment_status === "paid" && order.stripe_mode === "test" &&
-        ["new", "packing", "shipped"].includes(order.fulfillment_status)) {
+        ["new", "packing"].includes(order.fulfillment_status)) {
         const controls = element("div", "order-status-controls");
         const label = element("label", "", "Ändra leveransstatus");
         const select = element("select", "order-status-select");
