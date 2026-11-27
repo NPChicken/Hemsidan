@@ -1,6 +1,6 @@
--- SpinRoll UF: publik lagerstatus och atomiska reservationer före Stripe Checkout.
--- Kräver stock_management, archive_stock, catalog_prices.
--- Viktigt: Deploya Worker och Stripe-webhook med denna migration.
+-- SpinRoll UF: publik lagerstatus och säkra Stripe-testreservationer.
+-- OMKONSTRUERAD VERSION. Kör efter tidigare lager- och prismigrationer.
+-- Alla förändringar sker atomiskt inom en enda transaktion.
 begin;
 
 create table public.storefront_stock_reservations (
@@ -41,7 +41,7 @@ alter table public.stock_events add constraint stock_events_reason_check
 create function public.public_storefront_stock()
 returns table (storefront_key text, available_quantity bigint)
 language sql stable security definer set search_path = ''
-as $$
+as $stock_public$
     select cp.storefront_key,
         coalesce(sum(sl.quantity),0)::bigint
     from public.catalog_prices cp
@@ -49,82 +49,95 @@ as $$
     left join public.stock_levels sl on sl.item_id = si.id
     where cp.storefront_key is not null
     group by cp.storefront_key;
-$$;
+$stock_public$;
 
 -- Reservta exakt tillgängligt lager i samma databastransaktion.
 -- INGEN public/authenticated klient får exekvera skrivfunktionerna.
-create function public.reserve_storefront_stock(p_storefront_key text, p_quantity integer)
-returns uuid language plpgsql security definer set search_path = ''
-as $$
+create or replace function public.reserve_storefront_stock(
+    p_storefront_key text, p_quantity integer
+)
+returns uuid
+language plpgsql security definer set search_path = ''
+as $reserve$
 declare
     v_item uuid;
     v_available bigint;
-    v_remaining integer;
-    v_reservation uuid;
-    v_level record;
+    v_left integer;
+    v_id uuid;
+    v_location record;
     v_take integer;
 begin
-    if auth.role() <> 'service_role' then
+    if auth.role() is distinct from 'service_role' then
         raise exception 'Endast kassaservern får reservera lager' using errcode = '42501';
     end if;
-    if p_quantity is null or p_quantity < 1 or p_quantity > 10 then
+    if p_quantity is null or p_quantity not between 1 and 10 then
         raise exception 'Ogiltigt antal' using errcode = '22023';
     end if;
-    select cp.item_id into v_item
+
+    -- FOR UPDATE på artikeln synkroniserar med både samtidiga reservationer
+    -- och personalens lagerfunktioner, som tar FOR SHARE på artikeln.
+    select si.id into v_item
     from public.catalog_prices cp
     join public.stock_items si on si.id = cp.item_id
-    where cp.storefront_key = p_storefront_key and si.archived_at is null
-    for share of si;
+    where cp.storefront_key = p_storefront_key
+      and si.archived_at is null
+    for update of si;
+
     if not found then
         raise exception 'Produkten säljs inte i butiken' using errcode = '22023';
     end if;
 
-    perform pg_catalog.pg_advisory_xact_lock(
-        pg_catalog.hashtextextended('storefront:' || v_item::text, 0)
-    );
-    -- Lås per plats så inventering och mottagning inte kan ändra samtidigt.
-    -- Detta lås måste även tas i inventerings- och mottagnings-RPC:er.
-    select coalesce(sum(sl.quantity),0) into v_available
-    from public.stock_levels sl where sl.item_id = v_item;
+    select coalesce(sum(sl.quantity), 0)
+    into v_available
+    from public.stock_levels sl
+    where sl.item_id = v_item;
+
     if v_available < p_quantity then
-        raise exception 'Inte tillräckligt många exemplar kvar i lager'
-            using errcode = '23514';
+        raise exception 'Inte tillräckligt många exemplar kvar i lager' using errcode = '23514';
     end if;
 
-    insert into public.storefront_stock_reservations(item_id,quantity)
-    values (v_item,p_quantity) returning id into v_reservation;
-    v_remaining := p_quantity;
-    for v_level in
-        select item_id, location_id, quantity from public.stock_levels
-        where item_id = v_item and quantity > 0 order by location_id for update
+    insert into public.storefront_stock_reservations(item_id, quantity)
+    values (v_item, p_quantity) returning id into v_id;
+
+    v_left := p_quantity;
+    for v_location in
+        select location_id, quantity
+        from public.stock_levels
+        where item_id = v_item and quantity > 0
+        order by location_id for update
     loop
-        exit when v_remaining = 0;
-        v_take := least(v_remaining,v_level.quantity);
+        exit when v_left = 0;
+        v_take := least(v_left, v_location.quantity);
+
         update public.stock_levels
         set quantity = quantity - v_take, updated_at = now()
-        where item_id = v_item and location_id = v_level.location_id;
+        where item_id = v_item and location_id = v_location.location_id;
+
         insert into public.storefront_stock_reservation_lines(
-            reservation_id,item_id,location_id,quantity
-        ) values (v_reservation,v_item,v_level.location_id,v_take);
+            reservation_id, item_id, location_id, quantity
+        ) values (v_id, v_item, v_location.location_id, v_take);
+
         insert into public.stock_events(
-            item_id,location_id,previous_quantity,new_quantity,reason,actor_id
-        ) values (v_item,v_level.location_id,v_level.quantity,
-                  v_level.quantity-v_take,'checkout_reservation',null);
-        v_remaining := v_remaining-v_take;
+            item_id, location_id, previous_quantity, new_quantity, reason, actor_id
+        ) values (
+            v_item, v_location.location_id, v_location.quantity,
+            v_location.quantity - v_take, 'checkout_reservation', null
+        );
+        v_left := v_left - v_take;
     end loop;
-    if v_remaining <> 0 then
-        raise exception 'Lagerreservationen kunde inte slutföras'
-            using errcode = '23514';
+
+    if v_left <> 0 then
+        raise exception 'Kunde inte slutföra reservationen' using errcode = '23514';
     end if;
-    return v_reservation;
+    return v_id;
 end;
-$$;
+$reserve$;
 
 create function public.bind_checkout_stock_reservation(
     p_reservation_id uuid, p_stripe_session_id text
 )
 returns void language plpgsql security definer set search_path = ''
-as $$
+as $bind$
 declare v_status text;
 begin
     if auth.role() <> 'service_role' then
@@ -147,13 +160,13 @@ begin
             using errcode = '23514';
     end if;
 end;
-$$;
+$bind$;
 
 create function public.mark_checkout_stock_paid(
     p_reservation_id uuid, p_stripe_session_id text
 )
 returns void language plpgsql security definer set search_path = ''
-as $$
+as $paid$
 declare v_res public.storefront_stock_reservations%rowtype;
 begin
     if auth.role() <> 'service_role' then
@@ -172,74 +185,83 @@ begin
     update public.storefront_stock_reservations
     set status='paid', paid_at=now() where id=p_reservation_id;
 end;
-$$;
+$paid$;
 
 -- Används bara vid misslyckad Stripe-session eller signerad expired-webhook.
 -- Returnerar exakt samma exemplar till samma lagerplatser. Idempotent.
-create function public.release_checkout_stock_reservation(
+create or replace function public.release_checkout_stock_reservation(
     p_reservation_id uuid, p_stripe_session_id text default null
 )
-returns void language plpgsql security definer set search_path = ''
-as $$
+returns void
+language plpgsql security definer set search_path = ''
+as $release$
 declare
     v_res public.storefront_stock_reservations%rowtype;
     v_line record;
     v_old integer;
 begin
-    if auth.role() <> 'service_role' then
+    if auth.role() is distinct from 'service_role' then
         raise exception 'Åtkomst nekad' using errcode = '42501';
     end if;
-    select * into v_res from public.storefront_stock_reservations
-    where id = p_reservation_id for update;
+
+    select * into v_res
+    from public.storefront_stock_reservations
+    where id = p_reservation_id
+    for update;
     if not found then
-        raise exception 'Reservation saknas' using errcode = 'P0002';
+        raise exception 'Reservationen saknas' using errcode = 'P0002';
     end if;
-    -- En session kan ha löpt ut innan Worker hunnit binda den.
-    -- Då tillåts återföring från signerad Stripe expired-webhook på metadata-ID.
-    if p_stripe_session_id is not null and
-       v_res.stripe_checkout_session_id is not null and
-       v_res.stripe_checkout_session_id is distinct from p_stripe_session_id then
+    if p_stripe_session_id is not null
+       and v_res.stripe_checkout_session_id is not null
+       and v_res.stripe_checkout_session_id <> p_stripe_session_id then
         raise exception 'Fel Stripe-session' using errcode = '23514';
     end if;
+
     if v_res.status = 'released' then return; end if;
     if v_res.status <> 'reserved' then
-        raise exception 'Betalda exemplar kan inte frigöras' using errcode = '23514';
+        raise exception 'Betald reservation kan inte frigöras' using errcode = '23514';
     end if;
 
-    perform pg_catalog.pg_advisory_xact_lock(
-        pg_catalog.hashtextextended('storefront:' || v_res.item_id::text, 0)
-    );
+    -- Artikellåset synkroniserar med nya reservationer och inventering.
+    perform 1 from public.stock_items where id = v_res.item_id for update;
+
     for v_line in
-        select * from public.storefront_stock_reservation_lines
-        where reservation_id=p_reservation_id order by location_id
+        select location_id, quantity
+        from public.storefront_stock_reservation_lines
+        where reservation_id = p_reservation_id
+        order by location_id
     loop
-        -- Låset serialiseras även med personalens inventering och mottagning.
-        perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(
-            v_line.item_id::text || ':' || v_line.location_id::text, 0
-        ));
-        select quantity into v_old from public.stock_levels
-        where item_id=v_line.item_id and location_id=v_line.location_id for update;
-        if v_old is null or v_old+v_line.quantity > 1000000 then
+        select quantity into v_old
+        from public.stock_levels
+        where item_id = v_res.item_id and location_id = v_line.location_id
+        for update;
+        if v_old is null or v_old + v_line.quantity > 1000000 then
             raise exception 'Kunde inte återföra reserverat lager' using errcode = '23514';
         end if;
+
         update public.stock_levels
-        set quantity=v_old+v_line.quantity, updated_at=now()
-        where item_id=v_line.item_id and location_id=v_line.location_id;
+        set quantity = v_old + v_line.quantity, updated_at = now()
+        where item_id = v_res.item_id and location_id = v_line.location_id;
+
         insert into public.stock_events(
-            item_id,location_id,previous_quantity,new_quantity,reason,actor_id
-        ) values(v_line.item_id,v_line.location_id,v_old,
-                 v_old+v_line.quantity,'checkout_release',null);
+            item_id, location_id, previous_quantity, new_quantity, reason, actor_id
+        ) values (
+            v_res.item_id, v_line.location_id, v_old,
+            v_old + v_line.quantity, 'checkout_release', null
+        );
     end loop;
+
     update public.storefront_stock_reservations
-    set status='released',released_at=now() where id=p_reservation_id;
+    set status = 'released', released_at = now()
+    where id = p_reservation_id;
 end;
-$$;
+$release$;
 
 -- Reserverade exemplar har redan dragits från lagernivån. Förhindra att
 -- någon därför arkiverar en artikel/lagerplats medan en kassa är öppen.
 create or replace function public.archive_stock_item(p_item_id uuid)
 returns void language plpgsql security definer set search_path = ''
-as $$
+as $archive_item$
 begin
     perform public.assert_stock_staff();
     perform 1 from public.stock_items
@@ -264,11 +286,11 @@ begin
     end if;
     update public.stock_items set archived_at=now() where id=p_item_id;
 end;
-$;
+$archive_item$;
 
 create or replace function public.archive_stock_location(p_location_id uuid)
 returns void language plpgsql security definer set search_path = ''
-as $$
+as $archive_location$
 begin
     perform public.assert_stock_staff();
     perform 1 from public.stock_locations
@@ -295,7 +317,7 @@ begin
     end if;
     update public.stock_locations set archived_at=now() where id=p_location_id;
 end;
-$;
+$archive_location$;
 revoke all on function public.public_storefront_stock() from public, authenticated;
 grant execute on function public.public_storefront_stock() to anon, authenticated;
 revoke all on function public.reserve_storefront_stock(text,integer),
