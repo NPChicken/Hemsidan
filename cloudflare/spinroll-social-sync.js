@@ -10,7 +10,8 @@ const cutoffTime = () => Date.now() - LOOKBACK_MS;
 async function apiJson(url, options = {}) {
     const response = await fetch(url, { ...options, cache: "no-store" });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.error?.code || data.error?.message) {
+    if (!response.ok || (data.error && data.error.code && data.error.code !== "ok") ||
+        (data.error && !data.error.code && data.error.message)) {
         throw new Error("Social provider error, HTTP " + response.status +
             ": " + JSON.stringify(data.error || {}).slice(0, 220));
     }
