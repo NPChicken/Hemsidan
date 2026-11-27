@@ -58,3 +58,11 @@ Koden stöder för närvarande inte att återaktivera en arkiverad artikel eller
 ## Återanvänd artikelnummer och lagerplatsnamn efter borttagning
 
 Äldre lager-SQL använde globala UNIQUE-krav för `stock_items.sku` och `stock_locations.name`. Även arkiverade poster låste därmed artikelnummer och namn. Kör [`20261127160000_reuse_archived_stock_identifiers.sql`](./migrations/20261127160000_reuse_archived_stock_identifiers.sql) **en gång efter arkiveringsmigrationen**. Den ersätter de gamla kraven med unika index som gäller endast poster där `archived_at IS NULL`. Arkiverade artiklar och platser behålls för historiken; en ny artikel med samma SKU får ett nytt ID och eget lagersaldo.
+
+## Ångra tidigare mottagna leveranser
+
+Kör [`20261127190000_reverse_received_stock.sql`](./migrations/20261127190000_reverse_received_stock.sql) **en gång** i Supabase SQL Editor efter den ursprungliga lager-SQL:en. Publicera sedan personalpanelens uppdateringar från `ai/john`.
+
+Under **Tidigare mottagna leveranser** visas nu **Ångra mottagning**. Klicket kräver bekräftelse och anropar den behörighetskontrollerade databassfunktionen `reverse_received_stock(uuid)`. Funktionen drar av exakt leveransens antal från rätt artikel och lagerplats, uppdaterar status till `reversed`, och registrerar en separat `delivery_reversal`-händelse. Mottagningen försvinner från listan, men sparas i databasen för spårbarhet. Kostnaden för en ångrad leverans räknas inte längre med bland mottagna inköp.
+
+Av säkerhetsskäl kan ångring inte utföras om lagersaldot på den aktuella platsen är lägre än antal i leveransen; annars skulle saldot bli negativt. Om varorna redan sålts eller flyttats ska man inte använda ångring för att ta bort en verklig leverans. Ångra i första hand felaktiga testmottagningar.
