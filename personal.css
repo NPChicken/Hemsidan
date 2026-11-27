@@ -284,3 +284,27 @@ a { color: inherit; }
 .tile-stock-item-name { min-width: 0; overflow-wrap: anywhere; }
 .tile-stock-incoming { margin-top: -7px; color: #f2c99e; font-size: 11px; text-align: right; }
 .tile-stock-placeholder, .tile-stock-more { color: #e9bfc3; font-size: 12px; line-height: 1.5; }
+
+/* Snabböversikt för nya Stripe-testbeställningar */
+.tile-order-overview {
+    width: 100%;
+    display: grid;
+    gap: 12px;
+    margin: 0 0 18px;
+    color: #f7e7e1;
+    font-size: 13px;
+}
+.tile-order-entry {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+.tile-order-entry .tile-stock-row {
+    padding-bottom: 4px;
+}
+.tile-order-meta {
+    font-size: 11px;
+    line-height: 1.5;
+    color: #e9bfc3;
+    overflow-wrap: anywhere;
+}
