@@ -231,10 +231,67 @@ begin
 end;
 $$;
 
--- Åtgärda samtidig inventering: samma artikel/plats-lås vid reservation.
--- Ursprungliga lagerfunktionerna använder per-plats advisory lock. 
--- Reservation använder radlås i fast ordning, och måste också ta per-plats advisory lock.
--- (Läggs in i reservationen ovan vid varje rad innan UPDATE.)
+-- Reserverade exemplar har redan dragits från lagernivån. Förhindra att
+-- någon därför arkiverar en artikel/lagerplats medan en kassa är öppen.
+create or replace function public.archive_stock_item(p_item_id uuid)
+returns void language plpgsql security definer set search_path = ''
+as $
+begin
+    perform public.assert_stock_staff();
+    perform 1 from public.stock_items
+    where id=p_item_id and archived_at is null for update;
+    if not found then
+        raise exception 'Artikeln saknas eller är redan arkiverad' using errcode = 'P0002';
+    end if;
+    if exists (
+        select 1 from public.stock_levels
+        where item_id=p_item_id and quantity>0
+    ) or exists (
+        select 1 from public.storefront_stock_reservations
+        where item_id=p_item_id and status='reserved'
+    ) then
+        raise exception 'Artikeln har saldo eller reserverade exemplar' using errcode = '23514';
+    end if;
+    if exists (
+        select 1 from public.incoming_stock
+        where item_id=p_item_id and status='planned'
+    ) then
+        raise exception 'Artikeln har kommande leveranser' using errcode = '23514';
+    end if;
+    update public.stock_items set archived_at=now() where id=p_item_id;
+end;
+$;
+
+create or replace function public.archive_stock_location(p_location_id uuid)
+returns void language plpgsql security definer set search_path = ''
+as $
+begin
+    perform public.assert_stock_staff();
+    perform 1 from public.stock_locations
+    where id=p_location_id and archived_at is null for update;
+    if not found then
+        raise exception 'Lagerplatsen saknas eller är redan arkiverad' using errcode = 'P0002';
+    end if;
+    if exists (
+        select 1 from public.stock_levels
+        where location_id=p_location_id and quantity>0
+    ) or exists (
+        select 1 from public.storefront_stock_reservation_lines l
+        join public.storefront_stock_reservations r on r.id=l.reservation_id
+        where l.location_id=p_location_id and r.status='reserved'
+    ) then
+        raise exception 'Lagerplatsen har saldo eller reserverade exemplar'
+            using errcode = '23514';
+    end if;
+    if exists (
+        select 1 from public.incoming_stock
+        where location_id=p_location_id and status='planned'
+    ) then
+        raise exception 'Lagerplatsen har kommande leveranser' using errcode = '23514';
+    end if;
+    update public.stock_locations set archived_at=now() where id=p_location_id;
+end;
+$;
 revoke all on function public.public_storefront_stock() from public, authenticated;
 grant execute on function public.public_storefront_stock() to anon, authenticated;
 revoke all on function public.reserve_storefront_stock(text,integer),
