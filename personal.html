@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Inloggning för SpinRoll UF:s personal.">
     <title>Personal | SpinRoll UF</title>
-    <link rel="stylesheet" href="personal.css?v=20261127-stock-1">
-    <script type="module" src="personal.js?v=20261127-stock-1"></script>
+    <link rel="stylesheet" href="personal.css?v=20261127-stock-cost">
+    <script type="module" src="personal.js?v=20261127-stock-cost"></script>
 </head>
 <body>
     <header class="personal-header">
@@ -150,6 +150,8 @@
                         <h3>Kommande leveranser</h3>
                         <p class="stock-muted">Registrerade beställningar som ännu inte kommit fram.</p>
                         <div id="incoming-list" class="incoming-list"></div>
+                        <h4 class="stock-history-title">Tidigare mottagna leveranser</h4>
+                        <div id="received-list" class="incoming-list"></div>
                     </section>
                 </div>
                 <div class="stock-form-grid">
@@ -190,6 +192,9 @@
                         <select id="incoming-location" required></select>
                         <label for="incoming-quantity">Beställt antal</label>
                         <input id="incoming-quantity" type="number" min="1" max="1000000" step="1" required>
+                        <label for="incoming-cost">Total kostnad för leveransen (kr, valfritt)</label>
+                        <input id="incoming-cost" type="number" min="0" max="1000000000" step="0.01" inputmode="decimal" placeholder="Till exempel 1495,00">
+                        <p class="stock-muted">Ange hela kostnaden för den här leveransen, inklusive eventuell frakt. Lämna tomt om den ännu inte är känd.</p>
                         <label for="incoming-supplier">Leverantör (valfritt)</label>
                         <input id="incoming-supplier" maxlength="150" placeholder="Leverantörens namn">
                         <label for="incoming-date">Beräknad leverans</label>
