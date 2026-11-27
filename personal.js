@@ -62,6 +62,8 @@ function showAuthView(id) {
     $("stock-summary").replaceChildren();
     orderFetchSequence++;
     cachedOrders = [];
+    orderCostSelections = [];
+    orderCostFeatureAvailable = false;
     analyticsSequence++;
     analyticsProductRows = [];
     analyticsDailyRows = [];
@@ -107,6 +109,8 @@ function safeDate(date) {
 const STATUS_LABELS = { new: "Ny", packing: "Packad", shipped: "Skickad", cancelled: "Avbruten" };
 let cachedOrders = [];
 let orderStockAllocations = [];
+let orderCostSelections = [];
+let orderCostFeatureAvailable = false;
 let orderLocationsFeatureAvailable = false;
 let activeOrderFilter = "all";
 let orderFetchSequence = 0;
@@ -242,6 +246,64 @@ function buildOrderCard(order) {
             } else {
                 section.appendChild(element("p", "stock-muted",
                     isAllocated ? "Varorna är redan uttagna ur det fysiska lagret." : "Lagerplatsen kan inte ändras efter att ordern packats."));
+            }
+            if (order.fulfillment_status === "new" && !isAllocated &&
+                allocations[0].location_id && orderCostFeatureAvailable) {
+                const batchInfo = element("div", "order-batch-picker");
+                batchInfo.appendChild(element("strong", "", "Vilken leverans kommer exemplaren från?"));
+                const explanation = element("p", "stock-muted",
+                    "Välj exakt inköpsparti för korrekt vinstberäkning. Olika leveranser kan ha olika styckkostnad.");
+                const selected = orderCostSelections.find(entry => entry.order_id === order.id);
+                const batchSelect = element("select", "order-location-select");
+                batchSelect.id = "order-batch-" + order.id;
+                const batchLabel = element("label", "", "Inköpsparti");
+                batchLabel.htmlFor = batchSelect.id;
+                const blank = element("option", "", "Inget parti valt – kostnad okänd");
+                blank.value = "";
+                batchSelect.appendChild(blank);
+                const candidates = stockIncoming.filter(delivery =>
+                    delivery.status === "received" && delivery.is_test === false &&
+                    Number.isSafeInteger(delivery.total_cost_ore) &&
+                    delivery.item_id === allocations[0].item_id &&
+                    delivery.location_id === allocations[0].location_id);
+                for (const delivery of candidates) {
+                    const option = element("option", "",
+                        (delivery.supplier || "Leverans") + " · " + delivery.quantity +
+                        " st · " + kronor(delivery.total_cost_ore / delivery.quantity) + "/st" +
+                        (delivery.received_at ? " · " + safeDate(delivery.received_at) : ""));
+                    option.value = delivery.id;
+                    batchSelect.appendChild(option);
+                }
+                batchSelect.value = selected?.selected_delivery_id || "";
+                const batchSave = element("button", "save-order-status", "Spara inköpsparti");
+                batchSave.type = "button";
+                batchSave.disabled = !batchSelect.value ||
+                    batchSelect.value === selected?.selected_delivery_id;
+                batchSelect.addEventListener("change", () => {
+                    batchSave.disabled = !batchSelect.value ||
+                        batchSelect.value === selected?.selected_delivery_id;
+                });
+                batchSave.addEventListener("click", async () => {
+                    if (batchSave.disabled) return;
+                    batchSave.disabled = true;
+                    batchSelect.disabled = true;
+                    try {
+                        const { error } = await supabase.rpc("select_order_cost_delivery", {
+                            p_order_id: order.id,
+                            p_delivery_id: batchSelect.value
+                        });
+                        if (error) throw error;
+                        await loadOrders({ keepNotice: true });
+                        orderNotice("Inköpspartiet är sparat. Exakt styckkostnad bokförs när ordern markeras Packad.");
+                    } catch (error) {
+                        orderNotice("Inköpsparti kunde inte väljas: " +
+                            (error.message || "Okänt fel"), true);
+                        batchSelect.disabled = false;
+                        batchSave.disabled = false;
+                    }
+                });
+                batchInfo.append(explanation,batchLabel,batchSelect,batchSave);
+                section.appendChild(batchInfo);
             }
             content.appendChild(section);
         }
@@ -421,6 +483,10 @@ async function loadOrders({ keepNotice = false } = {}) {
         if (allocations.error) {
             console.warn("Order stock locations unavailable (migration missing?):", allocations.error.message);
         }
+        const batches = await supabase.rpc("list_order_cost_selections");
+        if (seq !== orderFetchSequence || $("staff-dashboard").hidden) return;
+        orderCostFeatureAvailable = !batches.error;
+        orderCostSelections = batches.error ? [] : (batches.data || []);
         renderOrderList();
     } catch (error) {
         if (seq !== orderFetchSequence) return;
@@ -993,7 +1059,7 @@ async function loadStock({ throwOnError = false } = {}) {
             supabase.from("stock_items").select("id,name,sku,unit,archived_at").order("name"),
             supabase.from("stock_locations").select("id,name,description,archived_at").order("name"),
             supabase.from("stock_levels").select("item_id,location_id,quantity"),
-            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,total_cost_ore,supplier,expected_on,notes,status,is_test").order("created_at", {ascending:false}).limit(200),
+            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,total_cost_ore,supplier,expected_on,received_at,notes,status,is_test").order("created_at", {ascending:false}).limit(200),
             supabase.from("catalog_prices").select("item_id,storefront_key,regular_price_ore,sale_price_ore,sale_ends_at")
         ]);
         const error = [items,locations,levels,incoming,prices].find(r => r.error)?.error;
