@@ -52,6 +52,7 @@ function showAuthView(id) {
     stockIncoming = [];
     $("stock-list").replaceChildren();
     $("incoming-list").replaceChildren();
+    $("received-list").replaceChildren();
     $("stock-summary").replaceChildren();
     orderFetchSequence++;
     cachedOrders = [];
@@ -316,6 +317,9 @@ function renderStock() {
     const quantity = stockLevels.reduce((sum, x) => sum + x.quantity, 0);
     const pending = stockIncoming.filter(x => x.status === "planned");
     const pendingQuantity = pending.reduce((sum, x) => sum + x.quantity, 0);
+    const received = stockIncoming.filter(x => x.status === "received");
+    const knownPendingCost = pending.reduce((sum, x) => sum + (x.total_cost_ore ?? 0), 0);
+    const knownReceivedCost = received.reduce((sum, x) => sum + (x.total_cost_ore ?? 0), 0);
     $("stock-count").textContent = stockItems.length + " artiklar";
     const summary = $("stock-summary");
     summary.replaceChildren();
@@ -323,7 +327,9 @@ function renderStock() {
         ["Artiklar", stockItems.length],
         ["Antal i lager", quantity],
         ["På väg", pendingQuantity],
-        ["Lagerplatser", stockLocations.length]
+        ["Lagerplatser", stockLocations.length],
+        ["Planerade inköp", kronor(knownPendingCost)],
+        ["Mottagna inköp", kronor(knownReceivedCost)]
     ]) {
         const card = element("div", "stock-stat");
         card.append(element("span", "", label), element("strong", "", value));
@@ -367,6 +373,8 @@ function renderStock() {
         card.appendChild(heading);
         card.appendChild(element("p", "stock-muted", "Till " + stockName(delivery.location_id, stockLocations) +
             (delivery.expected_on ? " · Beräknat " + delivery.expected_on : " · Inget datum")));
+        card.appendChild(element("p", "stock-cost", delivery.total_cost_ore == null
+            ? "Kostnad: ej angiven" : "Total kostnad: " + kronor(delivery.total_cost_ore)));
         if (delivery.supplier) card.appendChild(element("p", "stock-muted", "Leverantör: " + delivery.supplier));
         if (delivery.notes) card.appendChild(element("p", "stock-muted", delivery.notes));
         const receive = element("button", "stock-receive", "Markera som mottagen");
@@ -394,6 +402,26 @@ function renderStock() {
         card.appendChild(receive);
         incomingList.appendChild(card);
     }
+
+    const receivedList = $("received-list");
+    receivedList.replaceChildren();
+    if (!received.length) receivedList.appendChild(element("p", "stock-muted", "Inga mottagna leveranser än."));
+    for (const delivery of received.slice(0, 30)) {
+        const card = element("div", "stock-entry");
+        const item = stockItems.find(x => x.id === delivery.item_id);
+        const top = element("div", "stock-entry-line");
+        top.append(
+            element("strong", "", item?.name || "Okänd artikel"),
+            element("span", "", delivery.quantity + " " + (item?.unit || "st"))
+        );
+        card.appendChild(top);
+        card.appendChild(element("p", "stock-muted", "Mottagen till " +
+            stockName(delivery.location_id, stockLocations)));
+        card.appendChild(element("p", "stock-cost", delivery.total_cost_ore == null
+            ? "Kostnad: ej angiven" : "Total kostnad: " + kronor(delivery.total_cost_ore)));
+        if (delivery.supplier) card.appendChild(element("p", "stock-muted", "Leverantör: " + delivery.supplier));
+        receivedList.appendChild(card);
+    }
 }
 
 async function loadStock() {
@@ -405,7 +433,7 @@ async function loadStock() {
             supabase.from("stock_items").select("id,name,sku,unit").order("name"),
             supabase.from("stock_locations").select("id,name,description").order("name"),
             supabase.from("stock_levels").select("item_id,location_id,quantity"),
-            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,supplier,expected_on,notes,status").order("created_at", {ascending:false}).limit(200)
+            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,total_cost_ore,supplier,expected_on,notes,status").order("created_at", {ascending:false}).limit(200)
         ]);
         const error = [items,locations,levels,incoming].find(r => r.error)?.error;
         if (error) throw error;
@@ -472,7 +500,9 @@ submitStockForm("incoming-form", "add_incoming_stock", () => ({
     p_quantity: Number($("incoming-quantity").value),
     p_supplier: $("incoming-supplier").value.trim() || null,
     p_expected_on: $("incoming-date").value || null,
-    p_notes: $("incoming-notes").value.trim() || null
+    p_notes: $("incoming-notes").value.trim() || null,
+    p_total_cost_ore: $("incoming-cost").value.trim() === ""
+        ? null : Math.round(Number($("incoming-cost").value) * 100)
 }), "Den kommande leveransen har registrerats.");
 
 function showDashboard(user) {
