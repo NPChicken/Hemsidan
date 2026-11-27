@@ -6,8 +6,8 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Inloggning för SpinRoll UF:s personal.">
     <title>Personal | SpinRoll UF</title>
-    <link rel="stylesheet" href="personal.css?v=20261127-website-svdate">
-    <script type="module" src="personal.js?v=20261127-website-svdate"></script>
+    <link rel="stylesheet" href="personal.css?v=20261127-tile-stock">
+    <script type="module" src="personal.js?v=20261127-tile-stock"></script>
 </head>
 <body>
     <header class="personal-header">
@@ -101,6 +101,9 @@
                     <div class="tile-meta">02 / PRODUKTION</div>
                     <h2>Lager</h2>
                     <p>Artiklar, lagerplatser och planerade leveranser.</p>
+                    <div class="tile-stock-overview" id="tile-stock-overview" aria-label="Snabböversikt av lagret" aria-live="polite">
+                        <span class="tile-stock-placeholder">Hämtar lagersaldon…</span>
+                    </div>
                     <span class="tile-status" id="stock-count">Laddar…</span>
                 </article>
                 <article class="dashboard-tile">
