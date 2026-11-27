@@ -1,3 +1,5 @@
+> **Uppdatering:** Den ursprungliga analysen använde ett vägt produktgenomsnitt för inköpskostnad. Detta har ersatts av **exakt valt inköpsparti per order**, och sociala inlägg kan nu synkroniseras via separata officiella API:er. Följ den aktuella guiden: [DELIVERY_COST_AND_SOCIAL_SYNC_SETUP.md](./DELIVERY_COST_AND_SOCIAL_SYNC_SETUP.md). Texten nedan beskriver den äldre första versionen.
+
 # SpinRoll UF – försäljning, beräknad vinst och köptrender
 
 ## Installation på `ai/john`
