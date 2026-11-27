@@ -773,6 +773,42 @@ function renderStock() {
         card.appendChild(element("p", "stock-cost", delivery.total_cost_ore == null
             ? "Kostnad: ej angiven" : "Total kostnad: " + kronor(delivery.total_cost_ore)));
         if (delivery.supplier) card.appendChild(element("p", "stock-muted", "Leverantör: " + delivery.supplier));
+        const reverse = element("button", "stock-archive-button stock-reverse-button", "Ångra mottagning");
+        reverse.type = "button";
+        const available = stockLevels.find(level =>
+            level.item_id === delivery.item_id && level.location_id === delivery.location_id)?.quantity ?? 0;
+        if (available < delivery.quantity) {
+            reverse.disabled = true;
+            reverse.title = "Kan inte ångra: det finns färre exemplar på platsen än leveransen innehöll.";
+            card.appendChild(element("p", "stock-muted",
+                "Kan inte ångra just nu: för få exemplar kvar på lagerplatsen."));
+        } else {
+            reverse.addEventListener("click", async () => {
+                const description = (item?.name || "Artikeln") + " – " + delivery.quantity +
+                    " " + (item?.unit || "st") + " till " + stockName(delivery.location_id, stockLocations);
+                if (!window.confirm("Ångra mottagningen av " + description + "?\n\n" +
+                    "Antalet dras av från lagersaldot och leveransen tas bort från listan. " +
+                    "Ändringen sparas i historiken.")) return;
+                reverse.disabled = true;
+                reverse.textContent = "Ångrar…";
+                stockMessage();
+                try {
+                    const { error } = await supabase.rpc("reverse_received_stock", {
+                        p_incoming_id: delivery.id
+                    });
+                    if (error) throw error;
+                    await loadStock({ throwOnError: true });
+                    stockMessage("Mottagningen har ångrats. Lagersaldot är korrigerat och historiken sparad.");
+                } catch (error) {
+                    stockMessage("Kunde inte ångra mottagningen: " +
+                        (error.message || "Okänt fel") + ". Kontrollera att senaste lager-SQL är installerad.", true);
+                    console.error("Reverse stock delivery failed:", error);
+                    reverse.disabled = false;
+                    reverse.textContent = "Ångra mottagning";
+                }
+            });
+        }
+        card.appendChild(reverse);
         receivedList.appendChild(card);
     }
 }
