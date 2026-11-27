@@ -62,6 +62,16 @@ function showAuthView(id) {
     $("stock-summary").replaceChildren();
     orderFetchSequence++;
     cachedOrders = [];
+    orderCostSelections = [];
+    orderCostFeatureAvailable = false;
+    analyticsSequence++;
+    analyticsProductRows = [];
+    analyticsDailyRows = [];
+    analyticsPosts = [];
+    analyticsSocialStatus = [];
+    $("analytics-chart").replaceChildren();
+    $("analytics-products").replaceChildren();
+    $("analytics-posts-list").replaceChildren();
     $("tile-order-overview").replaceChildren();
     $("tile-order-overview").appendChild(element("span", "tile-stock-placeholder", "Hämtar beställningar…"));
     $("order-count").textContent = "Laddar…";
@@ -100,6 +110,8 @@ function safeDate(date) {
 const STATUS_LABELS = { new: "Ny", packing: "Packad", shipped: "Skickad", cancelled: "Avbruten" };
 let cachedOrders = [];
 let orderStockAllocations = [];
+let orderCostSelections = [];
+let orderCostFeatureAvailable = false;
 let orderLocationsFeatureAvailable = false;
 let activeOrderFilter = "all";
 let orderFetchSequence = 0;
@@ -235,6 +247,64 @@ function buildOrderCard(order) {
             } else {
                 section.appendChild(element("p", "stock-muted",
                     isAllocated ? "Varorna är redan uttagna ur det fysiska lagret." : "Lagerplatsen kan inte ändras efter att ordern packats."));
+            }
+            if (order.fulfillment_status === "new" && !isAllocated &&
+                allocations[0].location_id && orderCostFeatureAvailable) {
+                const batchInfo = element("div", "order-batch-picker");
+                batchInfo.appendChild(element("strong", "", "Vilken leverans kommer exemplaren från?"));
+                const explanation = element("p", "stock-muted",
+                    "Välj exakt inköpsparti för korrekt vinstberäkning. Olika leveranser kan ha olika styckkostnad.");
+                const selected = orderCostSelections.find(entry => entry.order_id === order.id);
+                const batchSelect = element("select", "order-location-select");
+                batchSelect.id = "order-batch-" + order.id;
+                const batchLabel = element("label", "", "Inköpsparti");
+                batchLabel.htmlFor = batchSelect.id;
+                const blank = element("option", "", "Inget parti valt – kostnad okänd");
+                blank.value = "";
+                batchSelect.appendChild(blank);
+                const candidates = stockIncoming.filter(delivery =>
+                    delivery.status === "received" && delivery.is_test === false &&
+                    Number.isSafeInteger(delivery.total_cost_ore) &&
+                    delivery.item_id === allocations[0].item_id &&
+                    delivery.location_id === allocations[0].location_id);
+                for (const delivery of candidates) {
+                    const option = element("option", "",
+                        (delivery.supplier || "Leverans") + " · " + delivery.quantity +
+                        " st · " + kronor(delivery.total_cost_ore / delivery.quantity) + "/st" +
+                        (delivery.received_at ? " · " + safeDate(delivery.received_at) : ""));
+                    option.value = delivery.id;
+                    batchSelect.appendChild(option);
+                }
+                batchSelect.value = selected?.selected_delivery_id || "";
+                const batchSave = element("button", "save-order-status", "Spara inköpsparti");
+                batchSave.type = "button";
+                batchSave.disabled = !batchSelect.value ||
+                    batchSelect.value === selected?.selected_delivery_id;
+                batchSelect.addEventListener("change", () => {
+                    batchSave.disabled = !batchSelect.value ||
+                        batchSelect.value === selected?.selected_delivery_id;
+                });
+                batchSave.addEventListener("click", async () => {
+                    if (batchSave.disabled) return;
+                    batchSave.disabled = true;
+                    batchSelect.disabled = true;
+                    try {
+                        const { error } = await supabase.rpc("select_order_cost_delivery", {
+                            p_order_id: order.id,
+                            p_delivery_id: batchSelect.value
+                        });
+                        if (error) throw error;
+                        await loadOrders({ keepNotice: true });
+                        orderNotice("Inköpspartiet är sparat. Exakt styckkostnad bokförs när ordern markeras Packad.");
+                    } catch (error) {
+                        orderNotice("Inköpsparti kunde inte väljas: " +
+                            (error.message || "Okänt fel"), true);
+                        batchSelect.disabled = false;
+                        batchSave.disabled = false;
+                    }
+                });
+                batchInfo.append(explanation,batchLabel,batchSelect,batchSave);
+                section.appendChild(batchInfo);
             }
             content.appendChild(section);
         }
@@ -414,6 +484,10 @@ async function loadOrders({ keepNotice = false } = {}) {
         if (allocations.error) {
             console.warn("Order stock locations unavailable (migration missing?):", allocations.error.message);
         }
+        const batches = await supabase.rpc("list_order_cost_selections");
+        if (seq !== orderFetchSequence || $("staff-dashboard").hidden) return;
+        orderCostFeatureAvailable = !batches.error;
+        orderCostSelections = batches.error ? [] : (batches.data || []);
         renderOrderList();
     } catch (error) {
         if (seq !== orderFetchSequence) return;
@@ -986,7 +1060,7 @@ async function loadStock({ throwOnError = false } = {}) {
             supabase.from("stock_items").select("id,name,sku,unit,archived_at").order("name"),
             supabase.from("stock_locations").select("id,name,description,archived_at").order("name"),
             supabase.from("stock_levels").select("item_id,location_id,quantity"),
-            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,total_cost_ore,supplier,expected_on,notes,status,is_test").order("created_at", {ascending:false}).limit(200),
+            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,total_cost_ore,supplier,expected_on,received_at,notes,status,is_test").order("created_at", {ascending:false}).limit(200),
             supabase.from("catalog_prices").select("item_id,storefront_key,regular_price_ore,sale_price_ore,sale_ends_at")
         ]);
         const error = [items,locations,levels,incoming,prices].find(r => r.error)?.error;
@@ -1081,6 +1155,307 @@ submitStockForm("incoming-form", "add_incoming_stock", () => ({
         ? null : Math.round(Number($("incoming-cost").value) * 100)
 }), "Den kommande leveransen har registrerats.");
 
+
+/* Sales & marketing: staff-only Supabase RPCs and manually registered posts.
+ * Order unit_amount is a SELLING price. Unit costs come from received stock
+ * deliveries and must never be silently assumed to be zero. */
+let analyticsSequence = 0;
+let analyticsProductRows = [];
+let analyticsDailyRows = [];
+let analyticsPosts = [];
+let analyticsSocialStatus = [];
+const marketingChannels = { instagram: "Instagram", tiktok: "TikTok",
+    facebook: "Facebook", youtube: "YouTube", other: "Annat" };
+
+function analyticsNotice(message = "", error = false) {
+    const node = $("analytics-message");
+    node.textContent = message;
+    node.classList.toggle("is-error", error);
+    node.hidden = !message;
+}
+
+function analyticsLocalDay(date) {
+    const d = new Date(date);
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") +
+        "-" + String(d.getDate()).padStart(2, "0");
+}
+
+function analyticsDateFrom(days) {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - days + 1);
+    return start;
+}
+
+function analyticsMoney(ore) {
+    return kronor(Math.round(Number(ore) || 0));
+}
+
+function analyticsSvgEl(tag, attributes = {}, label) {
+    const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, String(value));
+    if (label) {
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        title.textContent = label;
+        node.appendChild(title);
+    }
+    return node;
+}
+
+function renderAnalyticsProducts() {
+    const list = $("analytics-products");
+    list.replaceChildren();
+    const rows = analyticsProductRows;
+    const sales = rows.reduce((sum, r) => sum + Number(r.sales_ore || 0), 0);
+    const units = rows.reduce((sum, r) => sum + Number(r.sold_quantity || 0), 0);
+    const missing = rows.reduce((sum, r) => sum + Number(r.missing_cost_quantity || 0), 0);
+    const knownCost = rows.reduce((sum, r) => sum + Number(r.known_cost_ore || 0), 0);
+    $("analytics-revenue").textContent = analyticsMoney(sales);
+    $("analytics-units").textContent = String(units);
+    $("analytics-profit").textContent = missing ? "Ej komplett" : analyticsMoney(sales - knownCost);
+    $("analytics-profit-note").textContent = missing
+        ? "Inköpskostnad saknas för " + missing + " sålda exemplar."
+        : "Uppskattad bruttovinst före avgifter, moms och övriga kostnader.";
+
+    if (!rows.length) {
+        list.appendChild(element("p", "stock-muted",
+            "Inga betalda testordrar att analysera ännu."));
+        return;
+    }
+    for (const r of rows) {
+        const missingQty = Number(r.missing_cost_quantity || 0);
+        const revenue = Number(r.sales_ore || 0);
+        const cost = Number(r.known_cost_ore || 0);
+        const card = element("article", "analytics-product");
+        const header = element("div", "analytics-product-head");
+        header.append(element("strong", "", r.product_name || "Okänd produkt"),
+            element("span", "", Number(r.sold_quantity || 0) + " sålda"));
+        const stats = element("div", "analytics-product-stats");
+        const revenueStat = element("div");
+        revenueStat.append(element("small", "", "Försäljning"),
+            element("strong", "", analyticsMoney(revenue)));
+        const profitStat = element("div");
+        profitStat.append(element("small", "", "Beräknad bruttovinst"),
+            element("strong", "", missingQty ? "Kostnad saknas" : analyticsMoney(revenue - cost)));
+        stats.append(revenueStat, profitStat);
+        card.append(header, stats);
+        if (missingQty) card.appendChild(element("p", "analytics-warning",
+            "Saknar verifierbar inköpskostnad för " + missingQty +
+            " exemplar. Vinsten visas först när alla kostnader är kända."));
+        list.appendChild(card);
+    }
+}
+
+function renderAnalyticsChart() {
+    const target = $("analytics-chart");
+    target.replaceChildren();
+    const days = Number($("analytics-period").value);
+    const start = analyticsDateFrom(days);
+    const grouped = days > 90 ? 7 : 1;
+    const buckets = [];
+    const byDay = new Map(analyticsDailyRows.map(r => [r.day, Number(r.orders_count || 0)]));
+    const eventsByBucket = new Map();
+    const startMs = start.getTime();
+
+    for (let i = 0; i < days; i += grouped) {
+        let count = 0;
+        for (let j = i; j < Math.min(days, i + grouped); j++) {
+            const date = new Date(startMs);
+            date.setDate(start.getDate() + j);
+            count += byDay.get(analyticsLocalDay(date)) || 0;
+        }
+        const date = new Date(startMs);
+        date.setDate(start.getDate() + i);
+        buckets.push({ count, label: date.toLocaleDateString("sv-SE", {
+            day: "numeric", month: "short"
+        }), posts: [] });
+    }
+    for (const post of analyticsPosts) {
+        const d = new Date(post.published_at);
+        d.setHours(0, 0, 0, 0);
+        const offset = Math.round((d.getTime() - startMs) / 86400000);
+        if (offset < 0 || offset >= days) continue;
+        const idx = Math.floor(offset / grouped);
+        if (buckets[idx]) buckets[idx].posts.push(post);
+    }
+    const maxOrders = Math.max(1, ...buckets.map(b => b.count));
+    const w = Math.max(640, buckets.length * (grouped === 1 ? 12 : 19) + 65);
+    const h = 280, left = 45, right = 16, top = 28, base = 232;
+    const plotWidth = w - left - right;
+    const colWidth = plotWidth / Math.max(buckets.length, 1);
+    const svg = analyticsSvgEl("svg", {
+        viewBox: "0 0 " + w + " " + h,
+        width: w, height: h,
+        role: "img",
+        "aria-label": "Betalda ordrar per " + (grouped === 1 ? "dag" : "vecka") +
+            " med markörer för publicerade sociala inlägg"
+    });
+    for (let t = 0; t <= 4; t++) {
+        const count = Math.round(maxOrders * t / 4);
+        const y = base - (base - top) * (count / maxOrders);
+        svg.appendChild(analyticsSvgEl("line", {
+            x1: left, y1: y, x2: w-right, y2: y,
+            stroke: "#b7838b", "stroke-opacity": ".35"
+        }));
+        const txt = analyticsSvgEl("text", { x: left-9, y: y+4,
+            "text-anchor": "end", fill: "#efd2c8", "font-size": 11 });
+        txt.textContent = String(count);
+        svg.appendChild(txt);
+    }
+    buckets.forEach((bucket, i) => {
+        const x = left + i * colWidth + colWidth / 2;
+        const barHeight = (base - top) * bucket.count / maxOrders;
+        if (bucket.count) svg.appendChild(analyticsSvgEl("rect", {
+            x: x - Math.max(2, colWidth * .33), y: base - barHeight,
+            width: Math.max(4, colWidth * .66), height: barHeight,
+            rx: 2, fill: "#f2c99e"
+        }, bucket.label + ": " + bucket.count + " betalda ordrar"));
+        if (bucket.posts.length) {
+            svg.appendChild(analyticsSvgEl("line", {
+                x1: x, y1: top, x2: x, y2: base, stroke: "#85decf",
+                "stroke-width": 1.5, "stroke-dasharray": "4 4"
+            }));
+            svg.appendChild(analyticsSvgEl("circle", {
+                cx: x, cy: top + 4, r: 5, fill: "#85decf"
+            }, bucket.posts.map(p => (marketingChannels[p.channel] || p.channel) +
+                ": " + p.title).join(" • ")));
+        }
+        if (i % Math.max(1, Math.ceil(buckets.length / 9)) === 0 ||
+            i === buckets.length - 1) {
+            const textNode = analyticsSvgEl("text", {
+                x, y: base + 19, "text-anchor": "middle",
+                fill: "#eec8c6", "font-size": 11
+            });
+            textNode.textContent = bucket.label;
+            svg.appendChild(textNode);
+        }
+    });
+    target.appendChild(svg);
+    target.setAttribute("aria-label",
+        "Försäljningsdiagram: " + analyticsDailyRows.reduce((s, r) =>
+            s + Number(r.orders_count || 0), 0) +
+        " ordrar under perioden, " + analyticsPosts.length + " registrerade inlägg");
+
+    const status = $("analytics-social-status");
+    const channels = ["instagram","tiktok"];
+    status.textContent = channels.map(channel => {
+        const state = analyticsSocialStatus.find(row => row.channel === channel);
+        const name = marketingChannels[channel];
+        if (!state?.last_success_at) return name + ": väntar på officiell kontoanslutning";
+        const stale = Date.now() - Date.parse(state.last_success_at) > 36 * 3600000;
+        return name + ": " + (stale ? "senaste synkronisering gammal (" : "senast hämtad ") +
+            safeDate(state.last_success_at) + (stale ? ")" : "") +
+            (state.error_message ? " · senaste hämtning misslyckades" : "");
+    }).join(" · ");
+
+    const postsList = $("analytics-posts-list");
+    postsList.replaceChildren();
+    if (!analyticsPosts.length) {
+        postsList.appendChild(element("p", "stock-muted",
+            "Inga inlägg registrerade för denna period."));
+        return;
+    }
+    for (const post of analyticsPosts) {
+        const row = element("div", "analytics-post-row");
+        const info = element("div");
+        info.append(element("strong", "", post.title),
+            element("small", "", (marketingChannels[post.channel] || post.channel) +
+                " · " + safeDate(post.published_at)));
+        if (post.post_url) {
+            const anchor = element("a", "", "Öppna inlägg");
+            anchor.href = post.post_url;
+            anchor.target = "_blank";
+            anchor.rel = "noopener noreferrer";
+            info.appendChild(anchor);
+        }
+        const official = post.source === "instagram" || post.source === "tiktok";
+        const del = element("button", "analytics-post-delete",
+            official ? "Automatiskt hämtad" : "Ta bort");
+        del.type = "button";
+        del.disabled = official;
+        if (!official) del.addEventListener("click", async () => {
+            if (!window.confirm('Ta bort inlägget "' + post.title + '" från tidslinjen?')) return;
+            del.disabled = true;
+            try {
+                const { error } = await supabase.rpc("delete_marketing_post", { p_post_id: post.id });
+                if (error) throw error;
+                await loadAnalytics();
+            } catch (error) {
+                analyticsNotice("Kunde inte ta bort inlägget: " + error.message, true);
+                del.disabled = false;
+            }
+        });
+        row.append(info, del);
+        postsList.appendChild(row);
+    }
+}
+
+async function loadAnalytics() {
+    const seq = ++analyticsSequence;
+    $("analytics-refresh").disabled = true;
+    analyticsNotice("Hämtar försäljning och inlägg…");
+    const start = analyticsDateFrom(Number($("analytics-period").value));
+    try {
+        const [profit, trend, posts, syncStatus] = await Promise.all([
+            supabase.rpc("sales_profit_by_product"),
+            supabase.rpc("sales_trend_by_day", { p_from: analyticsLocalDay(start) }),
+            supabase.from("marketing_posts")
+                .select("id,channel,title,published_at,post_url,source")
+                .gte("published_at", start.toISOString())
+                .order("published_at", { ascending: false })
+                .limit(500),
+            supabase.from("social_sync_status")
+                .select("channel,last_success_at,last_error_at,error_message,posts_seen")
+        ]);
+        if (profit.error || trend.error || posts.error || syncStatus.error)
+            throw profit.error || trend.error || posts.error || syncStatus.error;
+        if (seq !== analyticsSequence || $("staff-dashboard").hidden) return;
+        analyticsProductRows = profit.data || [];
+        analyticsDailyRows = trend.data || [];
+        analyticsPosts = posts.data || [];
+        analyticsSocialStatus = syncStatus.data || [];
+        renderAnalyticsProducts();
+        renderAnalyticsChart();
+        analyticsNotice("");
+    } catch (error) {
+        if (seq !== analyticsSequence) return;
+        analyticsNotice("Kunde inte läsa analysen: " + (error.message || "Okänt fel") +
+            ". Kontrollera att SQL-migrationen för analys har körts.", true);
+        console.error("Analytics load failed:", error);
+    } finally {
+        if (seq === analyticsSequence) $("analytics-refresh").disabled = false;
+    }
+}
+
+$("analytics-refresh").addEventListener("click", () => { void loadAnalytics(); });
+$("analytics-period").addEventListener("change", () => { void loadAnalytics(); });
+$("analytics-post-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = $("analytics-post-save");
+    button.disabled = true;
+    analyticsNotice("");
+    try {
+        const localDate = new Date($("analytics-post-date").value);
+        if (Number.isNaN(localDate.getTime()) || localDate > new Date()) {
+            throw new Error("Ange ett giltigt datum som inte ligger i framtiden.");
+        }
+        const { error } = await supabase.rpc("add_marketing_post", {
+            p_channel: $("analytics-post-platform").value,
+            p_title: $("analytics-post-title").value.trim(),
+            p_published_at: localDate.toISOString(),
+            p_post_url: $("analytics-post-url").value.trim() || null
+        });
+        if (error) throw error;
+        $("analytics-post-form").reset();
+        await loadAnalytics();
+        analyticsNotice("Inlägget har lagts till på tidslinjen.");
+    } catch (error) {
+        analyticsNotice("Inlägget kunde inte sparas: " + (error.message || "Okänt fel"), true);
+    } finally {
+        button.disabled = false;
+    }
+});
+
 function showDashboard(user) {
     if (recoveryMode) return;
     const email = user.email || "";
@@ -1092,6 +1467,7 @@ function showDashboard(user) {
     showMessage();
     void loadOrders();
     void loadStock();
+    void loadAnalytics();
 }
 
 async function renderSession(session) {
