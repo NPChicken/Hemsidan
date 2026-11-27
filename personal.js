@@ -97,7 +97,7 @@ function safeDate(date) {
     }).format(new Date(date));
 }
 
-const STATUS_LABELS = { new: "Ny", packing: "Packas", shipped: "Skickad", cancelled: "Avbruten" };
+const STATUS_LABELS = { new: "Ny", packing: "Packad", shipped: "Skickad", cancelled: "Avbruten" };
 let cachedOrders = [];
 let orderStockAllocations = [];
 let orderLocationsFeatureAvailable = false;
@@ -169,11 +169,16 @@ function buildOrderCard(order) {
             const section = element("div", "order-location-controls");
             section.appendChild(element("strong", "", "Lagerplats för order"));
             const description = isAllocated
-                ? "Plockas från: " + allocations.map(row =>
+                ? (order.fulfillment_status === "shipped"
+                    ? "Skickad – slutligt uttag från: "
+                    : "Packad – uttaget från: ") + allocations.map(row =>
                     stockName(row.location_id, stockLocations) + " (" + row.quantity + " st)").join(", ")
-                : total + " exemplar reserverade centralt – inget lager har belastats.";
+                : allocations[0].location_id
+                    ? "Planerat från: " + stockName(allocations[0].location_id, stockLocations) +
+                      " · " + total + " exemplar reserverade centralt. Inget lageravdrag ännu."
+                    : total + " exemplar reserverade centralt – välj lagerplats innan packning.";
             section.appendChild(element("p", "order-location-current", description));
-            if (["new", "packing"].includes(order.fulfillment_status)) {
+            if (order.fulfillment_status === "new" && !isAllocated) {
                 const label = element("label", "", "Välj lagerplats för " + total + " exemplar");
                 const select = element("select", "order-location-select");
                 select.id = "order-location-" + order.id;
@@ -185,9 +190,7 @@ function buildOrderCard(order) {
                 for (const location of stockLocations.filter(loc => !loc.archived_at)) {
                     const physical = stockLevels.find(row =>
                         row.item_id === itemId && row.location_id === location.id)?.quantity ?? 0;
-                    const allocatedHere = isAllocated ? allocations.filter(row => row.location_id === location.id)
-                        .reduce((sum, row) => sum + row.quantity, 0) : 0;
-                    const eligible = physical + allocatedHere >= total;
+                    const eligible = physical >= total;
                     const opt = element("option", "",
                         location.name + " · " + physical + " fysiska exemplar" +
                         (eligible ? "" : " (för få)"));
@@ -195,8 +198,7 @@ function buildOrderCard(order) {
                     opt.disabled = !eligible;
                     select.appendChild(opt);
                 }
-                const current = isAllocated && allocations.length === 1
-                    ? allocations[0].location_id : "";
+                const current = allocations[0].location_id || "";
                 select.value = current;
                 const save = element("button", "save-order-status", "Spara lagerplats");
                 save.type = "button";
@@ -219,7 +221,7 @@ function buildOrderCard(order) {
                         if (error) throw error;
                         await loadStock();
                         await loadOrders({ keepNotice: true });
-                        orderNotice("Lagerplatsen är vald och de fysiska lagersaldona har uppdaterats.");
+                        orderNotice("Lagerplatsen har sparats. Det fysiska lagret ändras först när ordern markeras Packad.");
                     } catch (error) {
                         orderNotice("Kunde inte välja lagerplats: " +
                             (error.message || "Okänt fel") + ". Uppdatera sidan och försök igen.", true);
@@ -232,7 +234,7 @@ function buildOrderCard(order) {
                 section.append(label, select, save);
             } else {
                 section.appendChild(element("p", "stock-muted",
-                    "Skickade ordrar kan inte ändra lagerplats."));
+                    isAllocated ? "Varorna är redan uttagna ur det fysiska lagret." : "Lagerplatsen kan inte ändras efter att ordern packats."));
             }
             content.appendChild(section);
         }
@@ -240,14 +242,16 @@ function buildOrderCard(order) {
 
     // Skrivning görs enbart med en autentiserad RPC med behörighetskontroll i databasen.
     if (order.payment_status === "paid" && order.stripe_mode === "test" &&
-        ["new", "packing", "shipped"].includes(order.fulfillment_status)) {
+        ["new", "packing"].includes(order.fulfillment_status)) {
         const controls = element("div", "order-status-controls");
         const label = element("label", "", "Ändra leveransstatus");
         const select = element("select", "order-status-select");
         const selectId = "order-status-" + order.id;
         select.id = selectId;
         label.htmlFor = selectId;
-        for (const [value, text] of [["new", "Ny"], ["packing", "Packas"], ["shipped", "Skickad"]]) {
+        for (const [value, text] of (order.fulfillment_status === "new"
+            ? [["new", "Ny"], ["packing", "Packad"]]
+            : [["packing", "Packad"], ["shipped", "Skickad"]])) {
             const option = element("option", "", text);
             option.value = value;
             option.selected = value === order.fulfillment_status;
@@ -273,10 +277,13 @@ function buildOrderCard(order) {
                     p_expected_status: order.fulfillment_status
                 });
                 if (error) throw error;
-                orderNotice("Orderns status har ändrats till " + STATUS_LABELS[nextStatus] + ".");
+                await loadStock();
                 await loadOrders({ keepNotice: true });
+                orderNotice("Orderns status har ändrats till " + STATUS_LABELS[nextStatus] +
+                    (nextStatus === "packing" ? ". Lagret har nu dragits från vald lagerplats." : "."));
             } catch (error) {
-                orderNotice("Status kunde inte sparas. Kontrollera att den nya SQL-funktionen har installerats och försök igen.", true);
+                orderNotice("Status kunde inte sparas: " + (error.message || "Okänt fel") +
+                    ". Kontrollera att lagerplats är vald och att SQL-migrationen är installerad.", true);
                 console.error("Could not update fulfillment status:", error.message);
                 select.disabled = false;
                 save.disabled = select.value === order.fulfillment_status;
@@ -303,7 +310,7 @@ function renderDashboardOrderOverview() {
         order.payment_status === "paid" && order.fulfillment_status === "packing").length;
 
     const metrics = element("div", "tile-stock-metrics");
-    for (const [label, value] of [["Nya", newOrders.length], ["Packas", packing]]) {
+    for (const [label, value] of [["Nya", newOrders.length], ["Packade", packing]]) {
         const metric = element("div", "tile-stock-metric");
         metric.append(element("strong", "", value), element("span", "", label));
         metrics.appendChild(metric);

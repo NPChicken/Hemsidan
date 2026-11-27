@@ -69,3 +69,26 @@ where si.archived_at is null;
   Rätta orderstatus och inventering före migrationen så att inget räknas dubbelt.
 - Kundvagnens innehåll i localStorage är INTE en lagerreservation. Spärren börjar när
   Stripe Checkout-sessionen skapas.
+
+## När en order markeras som Skickad
+
+Kör tilläggsmigrationen
+[`20261128020000_complete_shipped_stock_reservations.sql`](./migrations/20261128020000_complete_shipped_stock_reservations.sql)
+**efter** platslösa reservationsmigrationen ovan. Publicera sedan senaste
+`personal.js` från `ai/john`.
+
+- Vid lagerplatsval dras varorna **en gång** från det fysiska lagret. Den
+  centrala spärren upphör redan då.
+- Vid status **Skickad** sätts lagerreservationen till `fulfilled` (avslutad).
+  Den är då inte längre reserverad, och inget extra antal dras.
+- Äldre skickade orderreservationer med redan utförda lageruttag uppdateras
+  från `paid` till `fulfilled` när migrationen körs, utan fler lageravdrag.
+- Ordersidan visar **Skickad – slutligt uttag från** respektive lagerplats
+  för historikens skull. Det är inte en aktiv reservation.
+- En skickad order kan inte automatiskt återställas till en tidigare status:
+  återtag/retur skulle behöva ett separat, journalfört flöde.
+
+**Test:** Lägg 5 exemplar på A, genomför testköp på 2 (A är fortsatt 5,
+centralt reserverade 2). Välj A (A blir 3, centralt reserverade 0).
+Ändra orderstatus till Skickad (A är fortfarande 3, centralt reserverade
+fortfarande 0, status på reservationen blir `fulfilled`).
