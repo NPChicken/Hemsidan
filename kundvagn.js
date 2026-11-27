@@ -2,7 +2,7 @@
 const PRODUKTER = {
     exile: {
         namn: "Exile",
-        pris: 249
+        pris: null
     }
 };
 
@@ -31,6 +31,10 @@ function sparaKundvagn() {
 
 function laggIKundvagn(id) {
     if (!PRODUKTER[id]) return;
+    if (!Number.isSafeInteger(window.spinrollPrices?.[id]?.effective_price_ore)) {
+        alert("Priset är inte tillgängligt just nu. Försök igen senare.");
+        return;
+    }
 
     kundvagn[id] = Math.min(
         10,
@@ -82,7 +86,9 @@ function visaKundvagn() {
 
         const produkt = PRODUKTER[id];
 
-        total += produkt.pris * qty;
+        const price = window.spinrollPrices?.[id];
+        const unitPrice = price?.effective_price_ore;
+        if (Number.isSafeInteger(unitPrice) && unitPrice > 0) total += unitPrice * qty;
         totaltAntal += qty;
 
         const rad = document.createElement("div");
@@ -92,7 +98,9 @@ function visaKundvagn() {
         namn.textContent = produkt.namn;
 
         const pris = document.createElement("p");
-        pris.textContent = `${produkt.pris} kr/st`;
+        pris.textContent = Number.isSafeInteger(unitPrice) && unitPrice > 0
+            ? `${new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK" }).format(unitPrice / 100)}/st`
+            : "Pris ej tillgängligt";
 
         const kontroller = document.createElement("div");
         kontroller.className = "antal-kontroller";
@@ -121,7 +129,12 @@ function visaKundvagn() {
         lista.textContent = "Din kundvagn är tom.";
     }
 
-    summa.textContent = `${total} kr`;
+    const validPrices = Object.entries(kundvagn).every(([id, qty]) =>
+        PRODUKTER[id] && Number.isInteger(qty) && qty > 0 &&
+        Number.isSafeInteger(window.spinrollPrices?.[id]?.effective_price_ore));
+    summa.textContent = validPrices ? `${new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK" }).format(total / 100)}` : "Pris ej tillgängligt";
+    const checkoutButton = document.querySelector("#till-kassan");
+    if (checkoutButton) checkoutButton.disabled = !validPrices || totaltAntal === 0;
     antal.textContent = totaltAntal;
 }
 
@@ -132,6 +145,11 @@ function tillKassan() {
         return;
     }
 
+    if (!Object.keys(kundvagn).every(id =>
+        Number.isSafeInteger(window.spinrollPrices?.[id]?.effective_price_ore))) {
+        alert("Priset kunde inte hämtas. Försök igen senare.");
+        return;
+    }
     window.location.href = "checkout.html";
 }
 
@@ -197,4 +215,6 @@ document.addEventListener("DOMContentLoaded", () => {
         .addEventListener("click", tillKassan);
 
     visaKundvagn();
+    document.addEventListener("spinroll:prices-ready", visaKundvagn);
+    document.addEventListener("spinroll:prices-error", visaKundvagn);
 });

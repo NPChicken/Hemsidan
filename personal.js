@@ -50,6 +50,8 @@ function showAuthView(id) {
     stockLocations = [];
     stockLevels = [];
     stockIncoming = [];
+    catalogPrices = [];
+    $("stock-prices-list").replaceChildren();
     $("stock-list").replaceChildren();
     $("incoming-list").replaceChildren();
     $("received-list").replaceChildren();
@@ -281,6 +283,7 @@ let stockItems = [];
 let stockLocations = [];
 let stockLevels = [];
 let stockIncoming = [];
+let catalogPrices = [];
 let stockFetchSequence = 0;
 
 function stockMessage(message, error = false) {
@@ -347,7 +350,132 @@ function stockArchiveButton(kind, entry, reason = "") {
     return button;
 }
 
+// Butikspriser – visas i personalpanelen och lagras med personalbehörighet.
+// Kassans Stripe Worker måste hämta effective_price_ore på serversidan.
+function priceToInput(ore) {
+    return ore == null ? "" : (ore / 100).toFixed(2);
+}
+
+function inputToOre(value) {
+    const text = String(value).trim().replace(",", ".");
+    if (!/^\\d{1,7}(\\.\\d{1,2})?$/.test(text)) return null;
+    const [whole, fractional = ""] = text.split(".");
+    return Number(whole) * 100 + Number(fractional.padEnd(2, "0"));
+}
+
+function renderCatalogPriceForms() {
+    const list = $("stock-prices-list");
+    list.replaceChildren();
+    const active = stockItems.filter(x => !x.archived_at);
+    if (!active.length) {
+        list.appendChild(element("p", "stock-muted", "Skapa först en artikel i lagret."));
+        return;
+    }
+    for (const item of active) {
+        const saved = catalogPrices.find(p => p.item_id === item.id);
+        const form = element("form", "stock-price-form");
+        const heading = element("h4", "", item.name);
+        const info = element("p", "stock-muted", item.sku
+            ? "Artikelnummer: " + item.sku : "Inget artikelnummer");
+        const label = (input, text) => {
+            const l = element("label", "", text);
+            l.htmlFor = input.id;
+            return l;
+        };
+        const regular = element("input");
+        regular.id = "regular-price-" + item.id;
+        regular.type = "number";
+        regular.step = "0.01";
+        regular.min = "0.01";
+        regular.max = "1000000";
+        regular.required = true;
+        regular.value = priceToInput(saved?.regular_price_ore);
+        regular.placeholder = "249,00";
+
+        const sale = element("input");
+        sale.id = "sale-price-" + item.id;
+        sale.type = "number";
+        sale.step = "0.01";
+        sale.min = "0.01";
+        sale.max = "1000000";
+        sale.value = priceToInput(saved?.sale_price_ore);
+        sale.placeholder = "199,00 (valfritt)";
+
+        const until = element("input");
+        until.id = "sale-until-" + item.id;
+        until.type = "datetime-local";
+        if (saved?.sale_ends_at) {
+            const end = new Date(saved.sale_ends_at);
+            const local = new Date(end.getTime() - end.getTimezoneOffset() * 60000);
+            until.value = local.toISOString().slice(0, 16);
+        }
+
+        const key = element("input");
+        key.id = "storefront-key-" + item.id;
+        key.type = "text";
+        key.maxLength = 40;
+        key.pattern = "[a-z0-9_-]{1,40}";
+        key.value = saved?.storefront_key || "";
+        key.placeholder = "t.ex. exile (valfritt)";
+
+        const fields = element("div", "stock-price-fields");
+        const field = (node, title) => {
+            const wrapper = element("div", "stock-price-field");
+            wrapper.append(label(node, title), node);
+            fields.appendChild(wrapper);
+        };
+        field(regular, "Ordinarie pris (kr)");
+        field(sale, "Kampanjpris (kr)");
+        field(until, "Kampanjen slutar (lokal tid)");
+        field(key, "Butikskoppling (produkt-ID)");
+        const hint = element("p", "stock-muted",
+            "Kampanjpris och slutdatum ska fyllas i tillsammans. Lämna båda tomma för att ta bort kampanjen. " +
+            "Använd butikens produkt-ID, till exempel exile, för artiklar som säljs på hemsidan.");
+        const status = element("p", "stock-cost", saved?.sale_price_ore && saved?.sale_ends_at &&
+            new Date(saved.sale_ends_at) > new Date()
+            ? "Aktuellt pris: " + kronor(saved.sale_price_ore)
+            : saved ? "Aktuellt pris: " + kronor(saved.regular_price_ore)
+                : "Inget pris registrerat");
+        const save = element("button", "stock-submit", "Spara pris");
+        save.type = "submit";
+        form.append(heading, info, fields, hint, status, save);
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+            const regularOre = inputToOre(regular.value);
+            const saleOre = sale.value.trim() ? inputToOre(sale.value) : null;
+            const saleDate = until.value ? new Date(until.value) : null;
+            if (regularOre == null || regularOre < 1 || regularOre > 100000000 ||
+                Boolean(sale.value.trim()) !== Boolean(until.value) ||
+                (saleOre != null && (saleOre < 1 || saleOre >= regularOre)) ||
+                (saleDate && (!Number.isFinite(saleDate.getTime()) || saleDate <= new Date()))) {
+                stockMessage("Kontrollera priset. Kampanjpris måste vara lägre än ordinarie pris och ha ett framtida slutdatum.", true);
+                return;
+            }
+            save.disabled = true;
+            stockMessage();
+            try {
+                const { error } = await supabase.rpc("save_catalog_price", {
+                    p_item_id: item.id,
+                    p_regular_price_ore: regularOre,
+                    p_sale_price_ore: saleOre,
+                    p_sale_ends_at: saleDate?.toISOString() || null,
+                    p_storefront_key: key.value.trim() || null
+                });
+                if (error) throw error;
+                await loadStock({ throwOnError: true });
+                stockMessage("Priset för " + item.name + " är sparat. Obs: Stripe Workern måste också använda pris-API:et.");
+            } catch (error) {
+                stockMessage("Kunde inte spara pris: " + (error.message || "Okänt fel"), true);
+                console.error("Price save failed:", error);
+                save.disabled = false;
+            }
+        });
+        list.appendChild(form);
+    }
+}
+
 function renderStock() {
+    renderCatalogPriceForms();
     const activeItems = stockItems.filter(item => !item.archived_at);
     const activeLocations = stockLocations.filter(location => !location.archived_at);
     stockOptionList("stock-level-item", activeItems, "Välj artikel");
@@ -496,19 +624,21 @@ async function loadStock({ throwOnError = false } = {}) {
     $("refresh-stock").disabled = true;
     stockMessage("Hämtar lagret…");
     try {
-        const [items, locations, levels, incoming] = await Promise.all([
+        const [items, locations, levels, incoming, prices] = await Promise.all([
             supabase.from("stock_items").select("id,name,sku,unit,archived_at").order("name"),
             supabase.from("stock_locations").select("id,name,description,archived_at").order("name"),
             supabase.from("stock_levels").select("item_id,location_id,quantity"),
-            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,total_cost_ore,supplier,expected_on,notes,status").order("created_at", {ascending:false}).limit(200)
+            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,total_cost_ore,supplier,expected_on,notes,status").order("created_at", {ascending:false}).limit(200),
+            supabase.from("catalog_prices").select("item_id,storefront_key,regular_price_ore,sale_price_ore,sale_ends_at")
         ]);
-        const error = [items,locations,levels,incoming].find(r => r.error)?.error;
+        const error = [items,locations,levels,incoming,prices].find(r => r.error)?.error;
         if (error) throw error;
         if (seq !== stockFetchSequence || $("staff-dashboard").hidden) return;
         stockItems = items.data || [];
         stockLocations = locations.data || [];
         stockLevels = levels.data || [];
         stockIncoming = incoming.data || [];
+        catalogPrices = prices.data || [];
         renderStock();
         stockMessage();
     } catch (error) {
