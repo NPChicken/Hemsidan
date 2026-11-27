@@ -45,6 +45,14 @@ function showMessage(message = "", kind = "error") {
 }
 
 function showAuthView(id) {
+    stockFetchSequence++;
+    stockItems = [];
+    stockLocations = [];
+    stockLevels = [];
+    stockIncoming = [];
+    $("stock-list").replaceChildren();
+    $("incoming-list").replaceChildren();
+    $("stock-summary").replaceChildren();
     orderFetchSequence++;
     cachedOrders = [];
     $("auth-layout").hidden = false;
@@ -265,6 +273,208 @@ document.querySelectorAll("[data-order-filter]").forEach(button => {
     });
 });
 
+// Lagerhantering: klienten kan endast läsa RLS-skyddade tabeller och anropa
+// begränsade RPC-funktioner för ändringar. Ingen direkt INSERT/UPDATE från webbläsaren.
+let stockItems = [];
+let stockLocations = [];
+let stockLevels = [];
+let stockIncoming = [];
+let stockFetchSequence = 0;
+
+function stockMessage(message, error = false) {
+    const node = $("stock-message");
+    node.textContent = message;
+    node.classList.toggle("is-error", error);
+    node.hidden = !message;
+}
+
+function stockOptionList(id, entries, placeholder) {
+    const select = $(id);
+    const previous = select.value;
+    select.replaceChildren();
+    const blank = element("option", "", placeholder);
+    blank.value = "";
+    select.appendChild(blank);
+    for (const entry of entries) {
+        const opt = element("option", "", entry.name);
+        opt.value = entry.id;
+        select.appendChild(opt);
+    }
+    if (entries.some(e => e.id === previous)) select.value = previous;
+}
+
+function stockName(id, list) {
+    return list.find(entry => entry.id === id)?.name || "Okänd";
+}
+
+function renderStock() {
+    stockOptionList("stock-level-item", stockItems, "Välj artikel");
+    stockOptionList("incoming-item", stockItems, "Välj artikel");
+    stockOptionList("stock-level-location", stockLocations, "Välj lagerplats");
+    stockOptionList("incoming-location", stockLocations, "Välj lagerplats");
+
+    const quantity = stockLevels.reduce((sum, x) => sum + x.quantity, 0);
+    const pending = stockIncoming.filter(x => x.status === "planned");
+    const pendingQuantity = pending.reduce((sum, x) => sum + x.quantity, 0);
+    $("stock-count").textContent = stockItems.length + " artiklar";
+    const summary = $("stock-summary");
+    summary.replaceChildren();
+    for (const [label, value] of [
+        ["Artiklar", stockItems.length],
+        ["Antal i lager", quantity],
+        ["På väg", pendingQuantity],
+        ["Lagerplatser", stockLocations.length]
+    ]) {
+        const card = element("div", "stock-stat");
+        card.append(element("span", "", label), element("strong", "", value));
+        summary.appendChild(card);
+    }
+
+    const list = $("stock-list");
+    list.replaceChildren();
+    if (!stockItems.length) {
+        list.appendChild(element("p", "stock-muted", "Inga artiklar ännu. Börja med att lägga till en artikel och en lagerplats."));
+    }
+    for (const item of stockItems) {
+        const card = element("div", "stock-entry");
+        const name = element("strong", "", item.name);
+        if (item.sku) name.appendChild(element("small", "stock-sku", " · " + item.sku));
+        card.appendChild(name);
+        const itemLevels = stockLevels.filter(level => level.item_id === item.id && level.quantity > 0);
+        if (!itemLevels.length) card.appendChild(element("p", "stock-muted", "0 " + item.unit + " registrerade"));
+        for (const level of itemLevels) {
+            const row = element("div", "stock-entry-line");
+            row.append(element("span", "", stockName(level.location_id, stockLocations)),
+                       element("strong", "", level.quantity + " " + item.unit));
+            card.appendChild(row);
+        }
+        const total = stockLevels.filter(level => level.item_id === item.id).reduce((sum, x) => sum + x.quantity, 0);
+        card.appendChild(element("div", "stock-total", "Totalt: " + total + " " + item.unit));
+        list.appendChild(card);
+    }
+
+    const incomingList = $("incoming-list");
+    incomingList.replaceChildren();
+    if (!pending.length) incomingList.appendChild(element("p", "stock-muted", "Inga kommande leveranser registrerade."));
+    for (const delivery of pending.sort((a, b) => (a.expected_on || "9999").localeCompare(b.expected_on || "9999"))) {
+        const card = element("div", "stock-entry");
+        const item = stockItems.find(x => x.id === delivery.item_id);
+        const heading = element("div", "stock-entry-line");
+        heading.append(
+            element("strong", "", item?.name || "Okänd artikel"),
+            element("strong", "", "+" + delivery.quantity + " " + (item?.unit || "st"))
+        );
+        card.appendChild(heading);
+        card.appendChild(element("p", "stock-muted", "Till " + stockName(delivery.location_id, stockLocations) +
+            (delivery.expected_on ? " · Beräknat " + delivery.expected_on : " · Inget datum")));
+        if (delivery.supplier) card.appendChild(element("p", "stock-muted", "Leverantör: " + delivery.supplier));
+        if (delivery.notes) card.appendChild(element("p", "stock-muted", delivery.notes));
+        const receive = element("button", "stock-receive", "Markera som mottagen");
+        receive.type = "button";
+        receive.addEventListener("click", async () => {
+            if (!window.confirm("Har leveransen verkligen kommit fram? " +
+                delivery.quantity + " " + (item?.unit || "st") + " läggs till i lagret.")) return;
+            receive.disabled = true;
+            receive.textContent = "Registrerar…";
+            try {
+                const { error } = await supabase.rpc("receive_incoming_stock", {
+                    p_incoming_id: delivery.id
+                });
+                if (error) throw error;
+                await loadStock();
+                stockMessage("Leveransen är mottagen och lagersaldot har uppdaterats.");
+            } catch (error) {
+                stockMessage("Kunde inte ta emot leveransen. " + (error.code === "PGRST202"
+                    ? "Kontrollera att lager-SQL är installerad." : "Försök uppdatera listan."), true);
+                console.error("Stock receipt failed:", error.message);
+                receive.disabled = false;
+                receive.textContent = "Markera som mottagen";
+            }
+        });
+        card.appendChild(receive);
+        incomingList.appendChild(card);
+    }
+}
+
+async function loadStock() {
+    const seq = ++stockFetchSequence;
+    $("refresh-stock").disabled = true;
+    stockMessage("Hämtar lagret…");
+    try {
+        const [items, locations, levels, incoming] = await Promise.all([
+            supabase.from("stock_items").select("id,name,sku,unit").order("name"),
+            supabase.from("stock_locations").select("id,name,description").order("name"),
+            supabase.from("stock_levels").select("item_id,location_id,quantity"),
+            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,supplier,expected_on,notes,status").order("created_at", {ascending:false}).limit(200)
+        ]);
+        const error = [items,locations,levels,incoming].find(r => r.error)?.error;
+        if (error) throw error;
+        if (seq !== stockFetchSequence || $("staff-dashboard").hidden) return;
+        stockItems = items.data || [];
+        stockLocations = locations.data || [];
+        stockLevels = levels.data || [];
+        stockIncoming = incoming.data || [];
+        renderStock();
+        stockMessage();
+    } catch (error) {
+        if (seq !== stockFetchSequence) return;
+        stockMessage("Lageruppgifterna kunde inte hämtas. Kontrollera att SQL-migrationen har körts i Supabase.", true);
+        console.error("Stock fetch failed:", error.message);
+    } finally {
+        if (seq === stockFetchSequence) $("refresh-stock").disabled = false;
+    }
+}
+
+$("refresh-stock").addEventListener("click", () => { void loadStock(); });
+
+async function submitStockForm(formId, functionName, buildParams, successMessage) {
+    const form = $(formId);
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+        const button = form.querySelector('button[type="submit"]');
+        button.disabled = true;
+        stockMessage();
+        try {
+            const { error } = await supabase.rpc(functionName, buildParams());
+            if (error) throw error;
+            form.reset();
+            await loadStock();
+            stockMessage(successMessage);
+        } catch (error) {
+            stockMessage("Kunde inte spara. Kontrollera fälten och att lagerfunktionen finns i Supabase.", true);
+            console.error(functionName + " failed:", error.message);
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
+
+submitStockForm("stock-item-form", "add_stock_item", () => ({
+    p_name: $("stock-item-name").value.trim(),
+    p_sku: $("stock-item-sku").value.trim() || null,
+    p_unit: $("stock-item-unit").value.trim()
+}), "Artikeln har lagts till.");
+
+submitStockForm("stock-location-form", "add_stock_location", () => ({
+    p_name: $("stock-location-name").value.trim(),
+    p_description: $("stock-location-description").value.trim() || null
+}), "Lagerplatsen har lagts till.");
+
+submitStockForm("stock-level-form", "set_stock_level", () => ({
+    p_item_id: $("stock-level-item").value,
+    p_location_id: $("stock-level-location").value,
+    p_quantity: Number($("stock-level-quantity").value)
+}), "Lagersaldot har sparats.");
+
+submitStockForm("incoming-form", "add_incoming_stock", () => ({
+    p_item_id: $("incoming-item").value,
+    p_location_id: $("incoming-location").value,
+    p_quantity: Number($("incoming-quantity").value),
+    p_supplier: $("incoming-supplier").value.trim() || null,
+    p_expected_on: $("incoming-date").value || null,
+    p_notes: $("incoming-notes").value.trim() || null
+}), "Den kommande leveransen har registrerats.");
+
 function showDashboard(user) {
     if (recoveryMode) return;
     const email = user.email || "";
@@ -275,6 +485,7 @@ function showDashboard(user) {
     $("staff-dashboard").hidden = false;
     showMessage();
     void loadOrders();
+    void loadStock();
 }
 
 async function renderSession(session) {
