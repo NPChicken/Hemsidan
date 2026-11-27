@@ -718,6 +718,7 @@ function renderStock() {
     for (const delivery of pending.sort((a, b) => (a.expected_on || "9999").localeCompare(b.expected_on || "9999"))) {
         const card = element("div", "stock-entry");
         const item = stockItems.find(x => x.id === delivery.item_id);
+        if (delivery.is_test) card.appendChild(element("span", "stock-test-badge", "TESTLEVERANS"));
         const heading = element("div", "stock-entry-line");
         heading.append(
             element("strong", "", item?.name || "Okänd artikel"),
@@ -762,6 +763,7 @@ function renderStock() {
     for (const delivery of received.slice(0, 30)) {
         const card = element("div", "stock-entry");
         const item = stockItems.find(x => x.id === delivery.item_id);
+        if (delivery.is_test) card.appendChild(element("span", "stock-test-badge", "TESTLEVERANS"));
         const top = element("div", "stock-entry-line");
         top.append(
             element("strong", "", item?.name || "Okänd artikel"),
@@ -776,7 +778,7 @@ function renderStock() {
         const location = stockLocations.find(x => x.id === delivery.location_id);
         const available = stockLevels.find(level =>
             level.item_id === delivery.item_id && level.location_id === delivery.location_id)?.quantity ?? 0;
-        if (available === 0) {
+        if (delivery.is_test && available === 0) {
             const cleanup = element("button", "stock-archive-button stock-reverse-button",
                 "Rensa testleverans");
             cleanup.type = "button";
@@ -810,6 +812,34 @@ function renderStock() {
             card.appendChild(cleanup);
             receivedList.appendChild(card);
             continue;
+        }
+        if (!delivery.is_test) {
+            const classify = element("button", "stock-archive-button stock-reverse-button",
+                "Markera äldre leverans som test");
+            classify.type = "button";
+            classify.addEventListener("click", async () => {
+                if (!window.confirm("Är du säker på att detta är en FELAKTIG TESTLEVERANS?\n\n" +
+                    "Märk inte riktiga inköp som test. Endast administratörer kan göra detta. " +
+                    "Åtgärden loggas i databasen.")) return;
+                classify.disabled = true;
+                classify.textContent = "Markerar…";
+                stockMessage();
+                try {
+                    const { error } = await supabase.rpc("mark_received_stock_as_test", {
+                        p_incoming_id: delivery.id
+                    });
+                    if (error) throw error;
+                    await loadStock({ throwOnError: true });
+                    stockMessage("Leveransen har markerats som test. Du kan nu rensa den om saldot på platsen är 0.");
+                } catch (error) {
+                    stockMessage("Kunde inte markera leveransen som test: " +
+                        (error.message || "Okänt fel"), true);
+                    console.error("Mark legacy stock test failed:", error);
+                    classify.disabled = false;
+                    classify.textContent = "Markera äldre leverans som test";
+                }
+            });
+            card.appendChild(classify);
         }
         const reverse = element("button", "stock-archive-button stock-reverse-button", "Ångra mottagning");
         reverse.type = "button";
@@ -858,7 +888,7 @@ async function loadStock({ throwOnError = false } = {}) {
             supabase.from("stock_items").select("id,name,sku,unit,archived_at").order("name"),
             supabase.from("stock_locations").select("id,name,description,archived_at").order("name"),
             supabase.from("stock_levels").select("item_id,location_id,quantity"),
-            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,total_cost_ore,supplier,expected_on,notes,status").order("created_at", {ascending:false}).limit(200),
+            supabase.from("incoming_stock").select("id,item_id,location_id,quantity,total_cost_ore,supplier,expected_on,notes,status,is_test").order("created_at", {ascending:false}).limit(200),
             supabase.from("catalog_prices").select("item_id,storefront_key,regular_price_ore,sale_price_ore,sale_ends_at")
         ]);
         const error = [items,locations,levels,incoming,prices].find(r => r.error)?.error;
@@ -945,6 +975,7 @@ submitStockForm("incoming-form", "add_incoming_stock", () => ({
     p_supplier: $("incoming-supplier").value.trim() || null,
     p_expected_on: $("incoming-date").value || null,
     p_notes: $("incoming-notes").value.trim() || null,
+    p_is_test: $("incoming-is-test").checked,
     p_total_cost_ore: $("incoming-cost").value.trim() === ""
         ? null : Math.round(Number($("incoming-cost").value) * 100)
 }), "Den kommande leveransen har registrerats.");
