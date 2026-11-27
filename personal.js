@@ -491,7 +491,7 @@ function renderStock() {
     }
 }
 
-async function loadStock() {
+async function loadStock({ throwOnError = false } = {}) {
     const seq = ++stockFetchSequence;
     $("refresh-stock").disabled = true;
     stockMessage("Hämtar lagret…");
@@ -513,8 +513,14 @@ async function loadStock() {
         stockMessage();
     } catch (error) {
         if (seq !== stockFetchSequence) return;
-        stockMessage("Lageruppgifterna kunde inte hämtas. Kontrollera att SQL-migrationen har körts i Supabase.", true);
-        console.error("Stock fetch failed:", error.message);
+        const missingArchive = error.code === "42703" ||
+            (error.message || "").includes("archived_at") ||
+            error.code === "PGRST204";
+        stockMessage(missingArchive
+            ? "Databasen saknar lagerarkiveringens fält. Kör SQL-filen 20261127150000_archive_stock.sql i Supabase."
+            : "Kunde inte läsa lagerlistan: " + (error.message || "Okänt fel"), true);
+        console.error("Stock fetch failed:", error);
+        if (throwOnError) throw error;
     } finally {
         if (seq === stockFetchSequence) $("refresh-stock").disabled = false;
     }
@@ -533,11 +539,18 @@ async function submitStockForm(formId, functionName, buildParams, successMessage
             const { error } = await supabase.rpc(functionName, buildParams());
             if (error) throw error;
             form.reset();
-            await loadStock();
-            stockMessage(successMessage);
+            try {
+                await loadStock({ throwOnError: true });
+                stockMessage(successMessage);
+            } catch {
+                stockMessage("Uppgiften sparades i databasen, men lagerlistan kunde inte uppdateras. Kontrollera om SQL-filen för arkivering är installerad.", true);
+            }
         } catch (error) {
-            stockMessage("Kunde inte spara. Kontrollera fälten och att lagerfunktionen finns i Supabase.", true);
-            console.error(functionName + " failed:", error.message);
+            const reason = error.code === "23505" ? "Artikelnummer eller lagerplatsnamn används redan."
+                : error.code === "PGRST202" ? "Databasfunktionen hittades inte. Kontrollera att lager-SQL har körts."
+                : (error.message || "Okänt fel");
+            stockMessage("Kunde inte spara: " + reason, true);
+            console.error(functionName + " failed:", error);
         } finally {
             button.disabled = false;
         }
