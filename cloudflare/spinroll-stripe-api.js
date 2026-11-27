@@ -98,7 +98,7 @@ export default {
             params.set("automatic_tax[enabled]", "false");
             // Stripe kräver minst 30 min. Ingen automatisk lageråterföring baserad
             // enbart på tid: endast signerad Stripe checkout.session.expired-event.
-            params.set("expires_at", String(Math.floor(Date.now() / 1000) + 30 * 60));
+            params.set("expires_at", String(Math.floor(Date.now() / 1000) + 35 * 60));
             params.set("payment_method_types[0]", "card");
 
             const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
@@ -111,6 +111,13 @@ export default {
             });
             const session = await stripeResponse.json();
             if (!stripeResponse.ok || !session.id || !session.client_secret) {
+                console.error("Stripe Checkout Session creation failed", {
+                    status: stripeResponse.status,
+                    code: session?.error?.code || null,
+                    type: session?.error?.type || null,
+                    param: session?.error?.param || null,
+                    message: session?.error?.message || "Stripe returned an invalid session"
+                });
                 throw new Error("Stripe Checkout Session kunde inte skapas");
             }
             stripeSessionId = session.id;
