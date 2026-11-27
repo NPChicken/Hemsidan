@@ -143,6 +143,20 @@
             line-height: 1.6;
         }
 
+
+        .avbryt-kop {
+            display: none;
+            margin-top: 18px;
+            padding: 12px 18px;
+            border: 1px solid #aaa;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font: inherit;
+            cursor: pointer;
+        }
+        .avbryt-kop:disabled { opacity: 0.6; cursor: wait; }
+
         .tom-kundvagn {
             display: none;
             text-align: center;
@@ -230,6 +244,7 @@
             </div>
 
             <div id="checkout"></div>
+            <button type="button" id="avbryt-kop" class="avbryt-kop">Avbryt köp</button>
 
         </section>
 
@@ -356,6 +371,32 @@
         // STARTA STRIPE EMBEDDED CHECKOUT
         // ========================================
 
+        let activeCheckout = null;
+        const cancelButton = document.getElementById("avbryt-kop");
+        cancelButton.addEventListener("click", async () => {
+            if (!activeCheckout || cancelButton.disabled) return;
+            cancelButton.disabled = true;
+            const message = document.getElementById("checkout-meddelande");
+            message.style.display = "block";
+            message.textContent = "Avbryter köpet...";
+            try {
+                const response = await fetch(CHECKOUT_API, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "cancel", ...activeCheckout })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.cancelled) {
+                    throw new Error(data.error || "Kunde inte avbryta köpet.");
+                }
+                activeCheckout = null;
+                window.location.href = "index.html";
+            } catch (error) {
+                message.textContent = error.message || "Kunde inte avbryta köpet.";
+                cancelButton.disabled = false;
+            }
+        });
+
         async function startaCheckout() {
             const meddelande = document.getElementById(
                 "checkout-meddelande"
@@ -419,6 +460,10 @@
                             );
                         }
 
+                        activeCheckout = {
+                            sessionId: data.sessionId,
+                            cancelToken: data.cancelToken
+                        };
                         return data.clientSecret;
                     }
                 });
@@ -426,6 +471,7 @@
                 meddelande.style.display = "none";
 
                 checkout.mount("#checkout");
+                cancelButton.style.display = "inline-block";
 
             } catch (error) {
                 console.error(error);
