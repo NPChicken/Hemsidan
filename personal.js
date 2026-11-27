@@ -158,44 +158,45 @@ function buildOrderCard(order) {
     }
     content.append(emailRow, shippingRow, status, products);
 
-    // Betald order: lagerplatsen som valdes automatiskt vid reservationen kan
-    // flyttas här innan ordern skickas. Endast databasen får ändra saldon.
+    // Platslösa reservationer spärrar bara global tillgänglighet.
+    // Fysiska lagerplatser påverkas först när personal väljer plockplats.
     if (order.payment_status === "paid" && order.stripe_mode === "test" &&
         orderLocationsFeatureAvailable) {
         const allocations = orderStockAllocations.filter(row => row.order_id === order.id);
         if (allocations.length) {
             const total = allocations.reduce((sum, row) => sum + row.quantity, 0);
-            const locationNames = allocations.map(row =>
-                stockName(row.location_id, stockLocations) + " (" + row.quantity + " st)").join(", ");
+            const isAllocated = allocations.every(row => row.allocated);
             const section = element("div", "order-location-controls");
             section.appendChild(element("strong", "", "Lagerplats för order"));
-            section.appendChild(element("p", "order-location-current",
-                "Reserverat från: " + locationNames));
+            const description = isAllocated
+                ? "Plockas från: " + allocations.map(row =>
+                    stockName(row.location_id, stockLocations) + " (" + row.quantity + " st)").join(", ")
+                : total + " exemplar reserverade centralt – inget lager har belastats.";
+            section.appendChild(element("p", "order-location-current", description));
             if (["new", "packing"].includes(order.fulfillment_status)) {
-                const label = element("label", "", "Välj lagerplats för samtliga " + total + " exemplar");
+                const label = element("label", "", "Välj lagerplats för " + total + " exemplar");
                 const select = element("select", "order-location-select");
-                const selectId = "order-location-" + order.id;
-                select.id = selectId;
-                label.htmlFor = selectId;
+                select.id = "order-location-" + order.id;
+                label.htmlFor = select.id;
                 const blank = element("option", "", "Välj lagerplats…");
                 blank.value = "";
                 select.appendChild(blank);
                 const itemId = allocations[0].item_id;
-                const activeLocations = stockLocations.filter(loc => !loc.archived_at);
-                for (const location of activeLocations) {
-                    const free = stockLevels.find(row =>
+                for (const location of stockLocations.filter(loc => !loc.archived_at)) {
+                    const physical = stockLevels.find(row =>
                         row.item_id === itemId && row.location_id === location.id)?.quantity ?? 0;
-                    const allocatedHere = allocations.filter(row => row.location_id === location.id)
-                        .reduce((sum, row) => sum + row.quantity, 0);
-                    const eligible = free + allocatedHere >= total;
-                    const opt = element("option", "", location.name + " · " + free + " lediga" +
-                        (allocatedHere ? " + " + allocatedHere + " reserverade" : "") +
+                    const allocatedHere = isAllocated ? allocations.filter(row => row.location_id === location.id)
+                        .reduce((sum, row) => sum + row.quantity, 0) : 0;
+                    const eligible = physical + allocatedHere >= total;
+                    const opt = element("option", "",
+                        location.name + " · " + physical + " fysiska exemplar" +
                         (eligible ? "" : " (för få)"));
                     opt.value = location.id;
                     opt.disabled = !eligible;
                     select.appendChild(opt);
                 }
-                const current = allocations.length === 1 ? allocations[0].location_id : "";
+                const current = isAllocated && allocations.length === 1
+                    ? allocations[0].location_id : "";
                 select.value = current;
                 const save = element("button", "save-order-status", "Spara lagerplats");
                 save.type = "button";
@@ -216,12 +217,13 @@ function buildOrderCard(order) {
                             p_location_id: select.value
                         });
                         if (error) throw error;
-                        await Promise.all([loadStock(), loadOrders({ keepNotice: true })]);
-                        orderNotice("Orderns lagerplats har uppdaterats och lagersaldona har justerats.");
+                        await loadStock();
+                        await loadOrders({ keepNotice: true });
+                        orderNotice("Lagerplatsen är vald och de fysiska lagersaldona har uppdaterats.");
                     } catch (error) {
-                        orderNotice("Kunde inte byta lagerplats: " +
-                            (error.message || "Okänt fel") + ". Uppdatera listan och försök igen.", true);
-                        console.error("Order stock location reassignment failed:", error);
+                        orderNotice("Kunde inte välja lagerplats: " +
+                            (error.message || "Okänt fel") + ". Uppdatera sidan och försök igen.", true);
+                        console.error("Order stock assignment failed:", error);
                         select.disabled = false;
                         save.textContent = "Spara lagerplats";
                         updateSave();
@@ -230,7 +232,7 @@ function buildOrderCard(order) {
                 section.append(label, select, save);
             } else {
                 section.appendChild(element("p", "stock-muted",
-                    "Ordern är skickad. Lagerplatsen kan inte längre ändras."));
+                    "Skickade ordrar kan inte ändra lagerplats."));
             }
             content.appendChild(section);
         }
