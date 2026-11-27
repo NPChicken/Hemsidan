@@ -31,7 +31,7 @@ function sparaKundvagn() {
 
 function laggIKundvagn(id) {
     if (!PRODUKTER[id]) return;
-    if (!Number.isSafeInteger(window.spinrollPrices?.[id]?.effective_price_ore)) {
+    if (!Number.isSafeInteger(window.spinrollPrices?.[id === "exile" ? "website" : id]?.effective_price_ore)) {
         alert("Priset är inte tillgängligt just nu. Försök igen senare.");
         return;
     }
@@ -86,7 +86,7 @@ function visaKundvagn() {
 
         const produkt = PRODUKTER[id];
 
-        const price = window.spinrollPrices?.[id];
+        const price = window.spinrollPrices?.[id === "exile" ? "website" : id];
         const unitPrice = price?.effective_price_ore;
         if (Number.isSafeInteger(unitPrice) && unitPrice > 0) total += unitPrice * qty;
         totaltAntal += qty;
@@ -131,7 +131,7 @@ function visaKundvagn() {
 
     const validPrices = Object.entries(kundvagn).every(([id, qty]) =>
         PRODUKTER[id] && Number.isInteger(qty) && qty > 0 &&
-        Number.isSafeInteger(window.spinrollPrices?.[id]?.effective_price_ore));
+        Number.isSafeInteger(window.spinrollPrices?.[id === "exile" ? "website" : id]?.effective_price_ore));
     summa.textContent = validPrices ? `${new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK" }).format(total / 100)}` : "Pris ej tillgängligt";
     const checkoutButton = document.querySelector("#till-kassan");
     if (checkoutButton) checkoutButton.disabled = !validPrices || totaltAntal === 0;
@@ -146,7 +146,7 @@ function tillKassan() {
     }
 
     if (!Object.keys(kundvagn).every(id =>
-        Number.isSafeInteger(window.spinrollPrices?.[id]?.effective_price_ore))) {
+        Number.isSafeInteger(window.spinrollPrices?.[id === "exile" ? "website" : id]?.effective_price_ore))) {
         alert("Priset kunde inte hämtas. Försök igen senare.");
         return;
     }

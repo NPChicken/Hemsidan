@@ -11,7 +11,7 @@
 
     <!-- Stripe -->
     <script src="https://js.stripe.com/v3/"></script>
-    <script src="butikspriser.js?v=20261127-1"></script>
+    <script src="butikspriser.js?v=20261127-website"></script>
 
     <style>
         * {
@@ -308,7 +308,7 @@
                 }
 
                 const produkt = produkter[id];
-                const unitOre = window.spinrollPrices?.[id]?.effective_price_ore;
+                const unitOre = window.spinrollPrices?.[id === "exile" ? "website" : id]?.effective_price_ore;
                 if (!Number.isSafeInteger(unitOre) || unitOre <= 0) return false;
                 const pris = unitOre * antal;
 

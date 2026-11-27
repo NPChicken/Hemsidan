@@ -90,3 +90,14 @@ Nu finns en komplett Worker i [`cloudflare/spinroll-stripe-api.js`](../cloudflar
 7. Testa ett Stripe **testköp** med ordinarie pris. Lägg därefter en kort kampanj i panelen och testa att priset återgår efter sluttiden. Kontrollera även att kundvagnen, kassan och den skapade Stripe-sessionen visar samma belopp.
 
 **Viktigt:** Jag har inte själv publicerat Cloudflare Workern eller kört SQL i din Supabase-databas. Den sista synkroniseringen sker först efter dessa två manuella steg. Befintliga Checkout-sessioner och gamla Stripe Price-objekt ändras inte.
+
+## Website-kopplingen och svenskt kampanjdatum (senaste uppdatering)
+
+Nu används prisnyckeln **`website`** för prisvisningen på **både startsidan** (`index.html`) **och Exile-sidan** (`exile.html`), samt för kundvagnen och kassan. Kundvagnens produkt-ID förblir `exile`; det är en separat identifierare, som översätts till prisnyckeln `website`. Detta är en gemensam koppling för just den produkt som visas på dessa två sidor, inte en regel för att alla framtida produkter ska få samma pris.
+
+- Kör [`migrations/20261127180000_website_price_connection.sql`](./migrations/20261127180000_website_price_connection.sql) **en gång** för att byta den gamla `exile`-kopplingen till `website`. Den gamla katalogpostens pris behålls.
+- Under **Artikelpriser & kampanjer** väljs **Website (butikskoppling)** som `website – hemsidan och kassan`, eller `Ingen webbkoppling`.
+- Kampanjens slutdatum anges i svensk ordning `ÅÅÅÅ-MM-DD` och klockslaget i 24-timmarsformat `HH:MM`, exempelvis `2026-12-15` och `23:59`. Dessa två fält ersätter webbläsarens regionsberoende datum-/tidskontroll.
+- Er Cloudflare Worker behöver få **den senaste versionen** av [`cloudflare/spinroll-stripe-api.js`](../cloudflare/spinroll-stripe-api.js), som översätter kundvagns-ID:t `exile` till prisnyckeln `website`. En tidigare publicerad Worker som fortfarande söker `exile` kommer annars inte kunna skapa kassan efter SQL-migrationen.
+
+**Aktiveringsordning för att undvika avbrott:** Förbered och publicera webbplats och senaste Worker-version så nära inpå SQL-migrationen som möjligt. Testa ett köp i Stripes testläge efteråt. Om `website` saknar pris kommer kassans Worker av säkerhetsskäl att vägra skapa betalning.

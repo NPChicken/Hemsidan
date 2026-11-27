@@ -243,9 +243,12 @@ a { color: inherit; }
 .stock-price-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
 .stock-price-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
 .stock-price-field label { color: #ffe5d2; font-size: 13px; font-weight: 700; }
-.stock-price-field input { box-sizing: border-box; width: 100%; min-width: 0; padding: 12px 11px; border: 1px solid rgba(242,201,158,.3); border-radius: 8px; color: #fff; background: #380713; font: inherit; font-size: 14px; }
-.stock-price-field input:focus { outline: 2px solid var(--cream); outline-offset: 1px; }
+.stock-price-field input, .stock-price-field select { box-sizing: border-box; width: 100%; min-width: 0; padding: 12px 11px; border: 1px solid rgba(242,201,158,.3); border-radius: 8px; color: #fff; background: #380713; font: inherit; font-size: 14px; }
+.stock-price-field input:focus, .stock-price-field select:focus { outline: 2px solid var(--cream); outline-offset: 1px; }
 .stock-price-field input::placeholder { color: #d5a8ae; }
 .stock-price-form .stock-submit { margin-top: 8px; }
 @media (max-width: 880px) { .stock-prices-list { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .stock-price-fields { grid-template-columns: 1fr; } }
+
+.stock-price-field select { appearance: auto; }
+.stock-price-field select option { background: #380713; color: #fff; }
