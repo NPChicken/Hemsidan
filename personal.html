@@ -7,8 +7,8 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Inloggning för SpinRoll UF:s personal.">
     <title>Personal | SpinRoll UF</title>
-    <link rel="stylesheet" href="personal.css?v=20261127-test-delivery-flags">
-    <script type="module" src="personal.js?v=20261127-test-delivery-flags"></script>
+    <link rel="stylesheet" href="personal.css?v=20261128-analytics">
+    <script type="module" src="personal.js?v=20261128-analytics"></script>
 </head>
 <body>
     <header class="personal-header">
@@ -111,6 +111,73 @@
                     <span class="tile-status" id="stock-count">Laddar…</span>
                 </article>
             </div>
+            <section class="analytics-section" id="sales-analytics" aria-labelledby="analytics-title">
+                <div class="orders-heading">
+                    <div>
+                        <p class="eyebrow">EKONOMI / MARKNADSFÖRING</p>
+                        <h2 id="analytics-title">Försäljning &amp; köptrender</h2>
+                    </div>
+                    <button type="button" class="outline-button" id="analytics-refresh">Uppdatera <span aria-hidden="true">↻</span></button>
+                </div>
+                <p class="stock-note" id="analytics-message" role="status" aria-live="polite">Hämtar analysdata…</p>
+                <p class="analytics-disclaimer">Visar bekräftade <strong>Stripe-testköp</strong>. Bruttovinsten är en uppskattning baserad på registrerade mottagningskostnader, inte bokföringsmässig nettovinst. Frakt, moms, betalavgifter och övriga kostnader ingår inte i beräkningen.</p>
+                <div class="analytics-metrics">
+                    <article class="analytics-metric"><span>Försäljning</span><strong id="analytics-revenue">–</strong><small>Sålda produkter totalt</small></article>
+                    <article class="analytics-metric"><span>Beräknad bruttovinst</span><strong id="analytics-profit">–</strong><small id="analytics-profit-note">Kräver registrerade inköpskostnader</small></article>
+                    <article class="analytics-metric"><span>Antal sålda</span><strong id="analytics-units">–</strong><small>Exemplar</small></article>
+                </div>
+                <div class="analytics-layout">
+                    <section class="analytics-panel" aria-labelledby="profit-title">
+                        <h3 id="profit-title">Vinst per produkt</h3>
+                        <p class="stock-muted">Historiskt försäljningspris minus uppskattat styckpris från riktiga mottagna leveranser. Saknade kostnader visas separat.</p>
+                        <div id="analytics-products" class="analytics-products"></div>
+                    </section>
+                    <section class="analytics-panel" aria-labelledby="trend-title">
+                        <div class="analytics-trend-top">
+                            <div>
+                                <h3 id="trend-title">Köptrend &amp; inlägg</h3>
+                                <p class="stock-muted">Antal betalda ordrar per dag och datum för publicerade inlägg. Ett samband är inte nödvändigtvis orsaken till fler köp.</p>
+                            </div>
+                            <label for="analytics-period">Period
+                                <select id="analytics-period">
+                                    <option value="30">30 dagar</option>
+                                    <option value="90" selected>90 dagar</option>
+                                    <option value="365">365 dagar</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="analytics-chart-legend"><span class="analytics-legend-sales">Betalda ordrar</span><span class="analytics-legend-posts">Publicerade inlägg</span></div>
+                        <div class="analytics-chart-scroll">
+                            <div id="analytics-chart" class="analytics-chart" role="img" aria-label="Diagram över betalda ordrar och publicerade inlägg"></div>
+                        </div>
+                        <div id="analytics-posts-list" class="analytics-posts-list"></div>
+                        <form id="analytics-post-form" class="analytics-post-form">
+                            <h4>Registrera publicerat inlägg</h4>
+                            <div class="analytics-form-grid">
+                                <label>Plattform
+                                    <select id="analytics-post-platform" required>
+                                        <option value="instagram">Instagram</option>
+                                        <option value="tiktok">TikTok</option>
+                                        <option value="facebook">Facebook</option>
+                                        <option value="youtube">YouTube</option>
+                                        <option value="other">Annat</option>
+                                    </select>
+                                </label>
+                                <label>Publicerat datum och tid
+                                    <input id="analytics-post-date" type="datetime-local" required>
+                                </label>
+                                <label>Rubrik/beskrivning
+                                    <input id="analytics-post-title" maxlength="140" placeholder="Till exempel: Trailer för Exile" required>
+                                </label>
+                                <label>Länk (valfri)
+                                    <input id="analytics-post-url" type="url" maxlength="1000" placeholder="https://…">
+                                </label>
+                            </div>
+                            <button class="stock-submit" type="submit" id="analytics-post-save">Spara inlägg</button>
+                        </form>
+                    </section>
+                </div>
+            </section>
             <section class="staff-orders" aria-labelledby="staff-orders-heading">
                 <div class="orders-heading">
                     <div>
