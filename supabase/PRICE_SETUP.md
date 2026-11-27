@@ -75,8 +75,18 @@ async function fetchServerPrices(supabaseUrl, publishableKey) {
 
 **Viktigt:** Denna lösning skapar priset i **nya Stripe Checkout-sessioner**, inte nya permanenta Stripe Price-objekt. Det är ett fullt giltigt sätt att ta rätt betalt. Om ni i stället behöver permanenta Stripe-pris-ID:n, prissynk i Dashboard och prisändringshistorik där krävs en separat serverintegration som skapar nya Stripe Price-objekt (Stripe Price-belopp kan inte ändras på befintliga Price-objekt).
 
-## Kvar innan priset ändras i faktisk checkout
+## Aktivera färdig Worker och prisvisning
 
-- Uppdatera/deploya Cloudflare Workern med API-priset som källa.
-- Uppdatera `exile.html`, `kundvagn.js` och `checkout.html` att läsa och visa aktuell prislista i stället för 249 kr, samtidigt som Workern deployas.
-- Testa först med Stripe **testläge**, inklusive före/efter kampanjens sluttid. Inga skarpa betalningar får testas på måfå.
+Nu finns en komplett Worker i [`cloudflare/spinroll-stripe-api.js`](../cloudflare/spinroll-stripe-api.js). Den är baserad på den Worker-kod som används i dag och använder Stripe **testläge**. Inga ändringar görs i ditt Cloudflare-konto automatiskt när GitHub uppdateras.
+
+**Rekommenderad ordning:**
+
+1. Kör pris-SQL-migrationen i Supabase.
+2. Skapa/spara ett ordinarie pris på artikeln i personalpanelen. Ange `exile` i fältet **Butikskoppling (produkt-ID)**.
+3. Kontrollera att `public_catalog_prices()` returnerar artikeln med positivt `effective_price_ore`.
+4. Kopiera hela [Worker-koden](../cloudflare/spinroll-stripe-api.js) till **Cloudflare → Workers & Pages → spinroll-stripe-api → Edit code**. Behåll Cloudflare-secreten `STRIPE_SECRET_KEY` (`sk_test_...`); ange den aldrig i koden. Kontrollera att gamla Worker-koden är säkerhetskopierad.
+5. Klicka **Deploy** i Cloudflare. Kassan använder från och med då det aktuella priset från Supabase, inte det tidigare fasta Stripe-pris-ID:t. Om pris hämtas felaktigt visas ett fel i stället för ett felaktigt debiterat belopp.
+6. Slå ihop `ai/john` med `main`. Nu hämtar `exile.html`, `kundvagn.js` och `checkout.html` samma publika prislista via `butikspriser.js`.
+7. Testa ett Stripe **testköp** med ordinarie pris. Lägg därefter en kort kampanj i panelen och testa att priset återgår efter sluttiden. Kontrollera även att kundvagnen, kassan och den skapade Stripe-sessionen visar samma belopp.
+
+**Viktigt:** Jag har inte själv publicerat Cloudflare Workern eller kört SQL i din Supabase-databas. Den sista synkroniseringen sker först efter dessa två manuella steg. Befintliga Checkout-sessioner och gamla Stripe Price-objekt ändras inte.
