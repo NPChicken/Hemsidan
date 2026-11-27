@@ -18,8 +18,8 @@ Denna version hanterar **artiklar**, **lagerplatser**, **antal på varje plats**
 1. Skapa först en **artikel**, till exempel `Exile` (enhet `st`).
 2. Skapa en **lagerplats**, till exempel `Förråd` eller `Hylla A`. Använd inga privata hemadresser om det inte behövs.
 3. Under **Inventera lagersaldo** väljer du artikel, plats och totalt antal som faktiskt finns där. Talet **ersätter** tidigare inventerat antal på just den platsen.
-4. Under **Planera lagerbeställning** registrerar du artikel, plats dit leveransen ska komma, antal och eventuellt leverantör, datum och anteckning. Det påverkar inte lagersaldot än.
-5. När leveransen har kommit fram, klicka på **Markera som mottagen**. Saldot ökar med beställt antal och leveransen försvinner från listan över kommande leveranser. Ett nytt mottagningsförsök av samma leverans nekas.
+4. Under **Planera lagerbeställning** registrerar du artikel, plats dit leveransen ska komma, antal, **total leveranskostnad i kronor** (valfritt) och eventuellt leverantör, datum och anteckning. Ange hela den planerade inköpskostnaden inklusive eventuell frakt; beloppet sparas i öre för exakta beräkningar. Det påverkar inte lagersaldot än.
+5. När leveransen har kommit fram, klicka på **Markera som mottagen**. Saldot ökar med beställt antal och leveransen flyttas till **Tidigare mottagna leveranser**, där kostnaden finns kvar. Ett nytt mottagningsförsök av samma leverans nekas.
 
 ## Säkerhet
 
@@ -34,3 +34,13 @@ Denna version hanterar **artiklar**, **lagerplatser**, **antal på varje plats**
 ## Verifiera RLS
 
 Testa både med inloggad personal och en användare utan aktiv `staff_members`-rad. Obehöriga får inte läsa eller skriva poster via API. Testa lagerförändringar med påhittade artiklar innan du använder verkliga saldon.
+
+## Inköpskostnader och framtida vinstberäkning
+
+Varje inleverans har ett valfritt fält `total_cost_ore`. Värdet representerar **den totala kostnaden för just den leveransen**, inte pris per artikel. Fältet kan lämnas tomt om priset inte är känt. Skriv 0 bara när leveransen faktiskt var kostnadsfri. Kostnaden sparas även när leveransen tas emot.
+
+Panelen visar **Planerade inköp** och **Mottagna inköp**, beräknade på upp till de 200 senaste inleveransposterna som klienten hämtar. De är inte ännu en fullständig ekonomisk rapport. Belopp för leveranser utan angiven kostnad kan inte räknas med.
+
+**Detta är inte vinst:** För att korrekt visa bruttovinst framöver behöver vi koppla sålda exemplar till inköpskostnad, skilja på betalda/mottagna leveranser, hantera moms, frakt och avgifter samt se till att även äldre ordrar/leveranser ingår.
+
+Om SQL-filen ännu inte har körts i Supabase, kopiera och kör dess **senaste version** som inkluderar `total_cost_ore`. Om du redan hann köra en tidigare version av lager-SQL, kör inte hela filen igen; meddela det så kan vi lägga en separat ändringsmigration för den befintliga databasen.
