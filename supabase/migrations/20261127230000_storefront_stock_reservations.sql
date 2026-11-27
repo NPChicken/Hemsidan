@@ -239,7 +239,7 @@ $$;
 -- någon därför arkiverar en artikel/lagerplats medan en kassa är öppen.
 create or replace function public.archive_stock_item(p_item_id uuid)
 returns void language plpgsql security definer set search_path = ''
-as $
+as $$
 begin
     perform public.assert_stock_staff();
     perform 1 from public.stock_items
@@ -268,7 +268,7 @@ $;
 
 create or replace function public.archive_stock_location(p_location_id uuid)
 returns void language plpgsql security definer set search_path = ''
-as $
+as $$
 begin
     perform public.assert_stock_staff();
     perform 1 from public.stock_locations
