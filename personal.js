@@ -773,10 +773,44 @@ function renderStock() {
         card.appendChild(element("p", "stock-cost", delivery.total_cost_ore == null
             ? "Kostnad: ej angiven" : "Total kostnad: " + kronor(delivery.total_cost_ore)));
         if (delivery.supplier) card.appendChild(element("p", "stock-muted", "Leverantör: " + delivery.supplier));
-        const reverse = element("button", "stock-archive-button stock-reverse-button", "Ångra mottagning");
-        reverse.type = "button";
+        const location = stockLocations.find(x => x.id === delivery.location_id);
         const available = stockLevels.find(level =>
             level.item_id === delivery.item_id && level.location_id === delivery.location_id)?.quantity ?? 0;
+        if (location?.archived_at && available === 0) {
+            const cleanup = element("button", "stock-archive-button stock-reverse-button",
+                "Rensa testleverans");
+            cleanup.type = "button";
+            cleanup.addEventListener("click", async () => {
+                if (!window.confirm("Rensa denna mottagna leverans från den arkiverade lagerplatsen \"" +
+                    location.name + "\"?\n\nLagersaldot ändras INTE eftersom platsen redan är tömd. " +
+                    "Leveransen markeras som rensad men sparas i historiken. Gör bara detta om det var en felaktig testleverans.")) return;
+                cleanup.disabled = true;
+                cleanup.textContent = "Rensar…";
+                stockMessage();
+                try {
+                    const { error } = await supabase.rpc("void_archived_received_stock", {
+                        p_incoming_id: delivery.id
+                    });
+                    if (error) throw error;
+                    await loadStock({ throwOnError: true });
+                    stockMessage("Testleveransen har rensats från listan utan att ändra lagersaldot. Historiken är kvar.");
+                } catch (error) {
+                    stockMessage("Kunde inte rensa leveransen: " +
+                        (error.message || "Okänt fel") +
+                        ". Kontrollera att SQL-migrationen för rensning är installerad.", true);
+                    console.error("Void archived stock delivery failed:", error);
+                    cleanup.disabled = false;
+                    cleanup.textContent = "Rensa testleverans";
+                }
+            });
+            card.appendChild(element("p", "stock-muted",
+                "Arkiverad lagerplats med 0 i saldo. Testleveransen kan rensas utan ny lagerjustering."));
+            card.appendChild(cleanup);
+            receivedList.appendChild(card);
+            continue;
+        }
+        const reverse = element("button", "stock-archive-button stock-reverse-button", "Ångra mottagning");
+        reverse.type = "button";
         if (available < delivery.quantity) {
             reverse.disabled = true;
             reverse.title = "Kan inte ångra: det finns färre exemplar på platsen än leveransen innehöll.";
