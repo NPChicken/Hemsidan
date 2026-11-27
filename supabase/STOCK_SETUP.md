@@ -66,3 +66,16 @@ Kör [`20261127190000_reverse_received_stock.sql`](./migrations/20261127190000_r
 Under **Tidigare mottagna leveranser** visas nu **Ångra mottagning**. Klicket kräver bekräftelse och anropar den behörighetskontrollerade databassfunktionen `reverse_received_stock(uuid)`. Funktionen drar av exakt leveransens antal från rätt artikel och lagerplats, uppdaterar status till `reversed`, och registrerar en separat `delivery_reversal`-händelse. Mottagningen försvinner från listan, men sparas i databasen för spårbarhet. Kostnaden för en ångrad leverans räknas inte längre med bland mottagna inköp.
 
 Av säkerhetsskäl kan ångring inte utföras om lagersaldot på den aktuella platsen är lägre än antal i leveransen; annars skulle saldot bli negativt. Om varorna redan sålts eller flyttats ska man inte använda ångring för att ta bort en verklig leverans. Ångra i första hand felaktiga testmottagningar.
+
+## Rensa felaktiga mottagningar på arkiverade lagerplatser
+
+Om lagerplatsen redan arkiverats måste lagersaldot vara 0. Den vanliga **Ångra mottagning**-funktionen kan då inte dra av antalet en gång till. Kör [`20261127200000_void_archived_received_stock.sql`](./migrations/20261127200000_void_archived_received_stock.sql) **en gång efter** ångra-migrationen (`20261127190000_reverse_received_stock.sql`). Publicera även den senaste personalpanelkoden.
+
+För mottagna leveranser vars ursprungliga lagerplats är **arkiverad och har 0 i saldo** visas knappen **Rensa testleverans**. Detta är **inte samma sak som att ångra mottagningen**:
+
+- Leveransen märks `voided`, försvinner från aktiv historik och tas bort från summeringen för mottagna inköp.
+- Lagersaldot ändras **inte**, eftersom användaren redan tömt lagerplatsen.
+- Leveransraden och en separat revisionspost i `stock_delivery_void_events` behålls.
+- Supabase kräver aktiv personal och kontrollerar själv arkivering och saldo. Verkliga leveranser bör inte rensas utan noggrann kontroll av inventeringen.
+
+Om lagerplatsen är aktiv eller fortfarande har saldo används den vanliga **Ångra mottagning**-knappen i stället.
