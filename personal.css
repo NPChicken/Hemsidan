@@ -252,3 +252,35 @@ a { color: inherit; }
 
 .stock-price-field select { appearance: auto; }
 .stock-price-field select option { background: #380713; color: #fff; }
+
+/* Kort lageröversikt direkt i dashboardens lagerkort */
+.tile-stock-overview {
+    width: 100%;
+    display: grid;
+    gap: 12px;
+    margin: 0 0 18px;
+    color: #f7e7e1;
+    font-size: 13px;
+}
+.tile-stock-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.tile-stock-metric {
+    border: 1px solid rgba(242,201,158,.26);
+    border-radius: 9px;
+    padding: 11px 12px;
+    background: rgba(42,4,12,.22);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.tile-stock-metric strong { font-size: 24px; color: #f2c99e; line-height: 1.15; }
+.tile-stock-metric span { font-size: 11px; color: #e9bfc3; }
+.tile-stock-rows { display: grid; gap: 8px; }
+.tile-stock-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; padding-bottom: 7px;
+    border-bottom: 1px solid rgba(242,201,158,.16);
+}
+.tile-stock-row strong { flex-shrink: 0; font-size: 13px; color: #fff; }
+.tile-stock-item-name { min-width: 0; overflow-wrap: anywhere; }
+.tile-stock-incoming { margin-top: -7px; color: #f2c99e; font-size: 11px; text-align: right; }
+.tile-stock-placeholder, .tile-stock-more { color: #e9bfc3; font-size: 12px; line-height: 1.5; }
