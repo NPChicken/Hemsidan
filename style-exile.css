@@ -356,3 +356,18 @@ button.kop-knapp {
     .exile-card-track { animation: none; }
     .exile-flip-inner { transition: none; }
 }
+
+/* Offentlig lagertillgänglighet för Exile */
+.storefront-stock-status {
+    margin: 8px 0 15px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #f2c99e;
+}
+.storefront-stock-status.stock-sold-out { color: #ffd0d0; }
+[data-buy-product]:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    pointer-events: none;
+}

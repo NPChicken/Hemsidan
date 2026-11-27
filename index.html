@@ -80,11 +80,14 @@
                 </p>
 
                 <p class="pris" data-storefront-price="website">Hämtar pris…</p>
+                <p class="storefront-stock-status" data-storefront-stock="website" role="status" aria-live="polite">Hämtar lagerstatus…</p>
 
                 <!-- Lägg i kundvagn -->
                 <button
                     type="button"
                     class="kop-knapp"
+                    data-buy-product="exile"
+                    disabled
                     onclick="laggIKundvagn('exile')">
                     Lägg i kundvagn
                 </button>
@@ -340,8 +343,9 @@
     </script>
 
     <!-- Kundvagn -->
-    <script src="butikspriser.js?v=20261127-website" defer></script>
-    <script src="kundvagn.js?v=20261127-website" defer></script>
+    <script src="butikspriser.js?v=20261127-stock" defer></script>
+    <script src="butikslager.js?v=20261127-stock" defer></script>
+    <script src="kundvagn.js?v=20261127-stock" defer></script>
 
     <!-- Brevos formulärhantering och SpinRoll-popup -->
     <script>

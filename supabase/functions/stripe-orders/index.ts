@@ -53,8 +53,12 @@ export default {
       return new Response("Invalid signature", { status: 400 });
     }
 
-    if (event.type !== "checkout.session.completed" &&
-        event.type !== "checkout.session.async_payment_succeeded") {
+    const supportedEvents = [
+      "checkout.session.completed",
+      "checkout.session.async_payment_succeeded",
+      "checkout.session.expired",
+    ];
+    if (!supportedEvents.includes(event.type)) {
       return Response.json({ received: true, ignored: true });
     }
 
@@ -68,11 +72,42 @@ export default {
       if (session.livemode || session.mode !== "payment") {
         return new Response("Wrong Stripe mode", { status: 400 });
       }
+
+      // Reservationen skapas i Worker och binds till exakt denna session.
+      const reservationId = session.metadata?.stock_reservation_id;
+      const isStockCheckout = session.metadata?.storefront_key === "website";
+      if (isStockCheckout && !reservationId) {
+        throw new Error("Stock checkout saknar reservations-ID.");
+      }
+
+      if (event.type === "checkout.session.expired") {
+        if (reservationId) {
+          const { error: releaseError } = await ctx.supabaseAdmin.rpc(
+            "release_checkout_stock_reservation", {
+              p_reservation_id: reservationId,
+              p_stripe_session_id: session.id,
+            }
+          );
+          if (releaseError) throw releaseError;
+        }
+        return Response.json({ received: true, stock: "released" });
+      }
+
       if (session.payment_status !== "paid") {
         return Response.json({ received: true, status: "awaiting_payment" });
       }
       if (session.amount_total == null || !session.currency) {
         throw new Error("Betald Checkout Session saknar belopp eller valuta.");
+      }
+
+      if (reservationId) {
+        const { error: paidError } = await ctx.supabaseAdmin.rpc(
+          "mark_checkout_stock_paid", {
+            p_reservation_id: reservationId,
+            p_stripe_session_id: session.id,
+          }
+        );
+        if (paidError) throw paidError;
       }
 
       const shipping = session.collected_information?.shipping_details;
