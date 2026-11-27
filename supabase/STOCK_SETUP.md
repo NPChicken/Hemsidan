@@ -44,3 +44,13 @@ Panelen visar **Planerade inköp** och **Mottagna inköp**, beräknade på upp t
 **Detta är inte vinst:** För att korrekt visa bruttovinst framöver behöver vi koppla sålda exemplar till inköpskostnad, skilja på betalda/mottagna leveranser, hantera moms, frakt och avgifter samt se till att även äldre ordrar/leveranser ingår.
 
 Om SQL-filen ännu inte har körts i Supabase, kopiera och kör dess **senaste version** som inkluderar `total_cost_ore`. Om du redan hann köra en tidigare version av lager-SQL, kör inte hela filen igen; meddela det så kan vi lägga en separat ändringsmigration för den befintliga databasen.
+
+## Lagerplatslista och borttagning (nytt)
+
+Det finns en egen ruta **Lagerplatser** där alla aktiva platser och deras beskrivningar visas. Artiklar har knappen **Ta bort artikel**, och lagerplatser har knappen **Ta bort lagerplats**.
+
+För att aktivera funktionen behöver du köra [`20261127150000_archive_stock.sql`](./migrations/20261127150000_archive_stock.sql) **efter att lagerdatabasen skapats**. Den lägger till kolumnen `archived_at` och funktionerna `archive_stock_item` samt `archive_stock_location`. Kör den via Supabase SQL Editor en gång, och publicera sedan de nya `personal.html`, `personal.js` och `personal.css`.
+
+Borttagning är en **arkivering**: artikeln eller platsen försvinner från aktiva listor och formulär, men tidigare inleveranser, revisionsloggar och inköpskostnader ligger kvar i databasen för framtida ekonomiska rapporter. Detta förhindrar att historiska kopplingar förstörs. Funktionen vägrar arkivering om det finns saldo kvar på platsen eller artikeln, eller någon planerad leverans som använder den. Inventera till noll och hantera alla väntande leveranser först. Skyddet kontrolleras på serversidan med Supabase Auth och inte bara av gränssnittet.
+
+Koden stöder för närvarande inte att återaktivera en arkiverad artikel eller plats i panelen; det får vi lägga till separat vid behov.
