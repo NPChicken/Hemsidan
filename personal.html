@@ -7,8 +7,8 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Inloggning för SpinRoll UF:s personal.">
     <title>Personal | SpinRoll UF</title>
-    <link rel="stylesheet" href="personal.css?v=20261128-analytics">
-    <script type="module" src="personal.js?v=20261128-analytics"></script>
+    <link rel="stylesheet" href="personal.css?v=20261128-batches-social">
+    <script type="module" src="personal.js?v=20261128-batches-social"></script>
 </head>
 <body>
     <header class="personal-header">
@@ -120,28 +120,28 @@
                     <button type="button" class="outline-button" id="analytics-refresh">Uppdatera <span aria-hidden="true">↻</span></button>
                 </div>
                 <p class="stock-note" id="analytics-message" role="status" aria-live="polite">Hämtar analysdata…</p>
-                <p class="analytics-disclaimer">Visar bekräftade <strong>Stripe-testköp</strong>. Bruttovinsten är en uppskattning baserad på registrerade mottagningskostnader, inte bokföringsmässig nettovinst. Frakt, moms, betalavgifter och övriga kostnader ingår inte i beräkningen.</p>
+                <p class="analytics-disclaimer">Visar bekräftade <strong>Stripe-testköp</strong>. Bruttovinsten bygger på valt inköpsparti för varje packad order. Saknas partiet visas ingen uppskattad vinst. Frakt, moms, betalavgifter och övriga kostnader ingår inte i beräkningen.</p>
                 <div class="analytics-metrics">
                     <article class="analytics-metric"><span>Försäljning</span><strong id="analytics-revenue">–</strong><small>Sålda produkter totalt</small></article>
-                    <article class="analytics-metric"><span>Beräknad bruttovinst</span><strong id="analytics-profit">–</strong><small id="analytics-profit-note">Kräver registrerade inköpskostnader</small></article>
+                    <article class="analytics-metric"><span>Beräknad bruttovinst</span><strong id="analytics-profit">–</strong><small id="analytics-profit-note">Kräver valt inköpsparti vid packning</small></article>
                     <article class="analytics-metric"><span>Antal sålda</span><strong id="analytics-units">–</strong><small>Exemplar</small></article>
                 </div>
                 <div class="analytics-layout">
                     <section class="analytics-panel" aria-labelledby="profit-title">
                         <h3 id="profit-title">Vinst per produkt</h3>
-                        <p class="stock-muted">Historiskt försäljningspris minus uppskattat styckpris från riktiga mottagna leveranser. Saknade kostnader visas separat.</p>
+                        <p class="stock-muted">Historiskt försäljningspris minus styckkostnaden från det mottagna inköpsparti som valts för ordern. Inga produktgenomsnitt.</p>
                         <div id="analytics-products" class="analytics-products"></div>
                     </section>
                     <section class="analytics-panel" aria-labelledby="trend-title">
                         <div class="analytics-trend-top">
                             <div>
                                 <h3 id="trend-title">Köptrend &amp; inlägg</h3>
-                                <p class="stock-muted">Antal betalda ordrar per dag och datum för publicerade inlägg. Ett samband är inte nödvändigtvis orsaken till fler köp.</p>
+                                <p class="stock-muted">Antal betalda ordrar per dag och inlägg från @spinrolluf och @spinroll.uf. Samband behöver inte betyda orsak.</p>
                             </div>
                             <label for="analytics-period">Period
                                 <select id="analytics-period">
-                                    <option value="30">30 dagar</option>
-                                    <option value="90" selected>90 dagar</option>
+                                    <option value="30" selected>30 dagar</option>
+                                    <option value="90">90 dagar</option>
                                     <option value="365">365 dagar</option>
                                 </select>
                             </label>
@@ -150,9 +150,10 @@
                         <div class="analytics-chart-scroll">
                             <div id="analytics-chart" class="analytics-chart" role="img" aria-label="Diagram över betalda ordrar och publicerade inlägg"></div>
                         </div>
+                        <p id="analytics-social-status" class="stock-muted" aria-live="polite">Sociala konton: kontrollerar synkronisering…</p>
                         <div id="analytics-posts-list" class="analytics-posts-list"></div>
                         <form id="analytics-post-form" class="analytics-post-form">
-                            <h4>Registrera publicerat inlägg</h4>
+                            <h4>Lägg till inlägg manuellt</h4>
                             <div class="analytics-form-grid">
                                 <label>Plattform
                                     <select id="analytics-post-platform" required>
