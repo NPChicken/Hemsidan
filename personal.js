@@ -1232,19 +1232,19 @@ function renderAnalyticsProducts() {
         header.append(element("strong", "", r.product_name || "Okänd produkt"),
             element("span", "", Number(r.sold_quantity || 0) + " sålda"));
         const stats = element("div", "analytics-product-stats");
-        const revenueStat = element("div");
-        revenueStat.append(element("small", "", "Försäljning"),
-            element("strong", "", analyticsMoney(revenue)));
         const totalProfit = revenue - cost;
         const quantity = Number(r.sold_quantity || 0);
-        const profitStat = element("div");
-        profitStat.append(element("small", "", "Genomsnittlig vinst per sålt exemplar"),
+        const profitStat = element("div", "analytics-product-per-unit");
+        profitStat.append(element("small", "", "Genomsnittlig bruttovinst / exemplar"),
             element("strong", "", missingQty || !quantity
-                ? "Kostnad saknas" : analyticsMoney(totalProfit / quantity)));
+                ? "Kostnad saknas" : analyticsMoney(totalProfit / quantity) + "/st"));
+        const revenueStat = element("div");
+        revenueStat.append(element("small", "", "Total försäljning · " + quantity + " st"),
+            element("strong", "", analyticsMoney(revenue)));
         const totalStat = element("div");
-        totalStat.append(element("small", "", "Total bruttovinst för " + quantity + " sålda"),
+        totalStat.append(element("small", "", "Total bruttovinst · " + quantity + " st"),
             element("strong", "", missingQty ? "Ej komplett" : analyticsMoney(totalProfit)));
-        stats.append(revenueStat, profitStat, totalStat);
+        stats.append(profitStat, revenueStat, totalStat);
         card.append(header, stats);
         if (missingQty) card.appendChild(element("p", "analytics-warning",
             "Saknar verifierbar inköpskostnad för " + missingQty +
