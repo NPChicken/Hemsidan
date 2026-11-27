@@ -60,14 +60,18 @@ function andraAntal(id, skillnad) {
     if (nyttAntal <= 0) {
         delete kundvagn[id];
     } else {
-        const available = window.spinrollStock?.[id === "exile" ? "website" : id];
-        if (!Number.isSafeInteger(available)) {
-            alert("Lagerstatus kunde inte kontrolleras.");
-            return;
-        }
-        if (nyttAntal > available) {
-            alert("Endast " + available + " exemplar finns i lager.");
-            return;
+        // Att minska antalet ska alltid fungera, även när lagret är slut
+        // eller lagerstatus inte kan hämtas. Kontrollera bara ökningar.
+        if (skillnad > 0) {
+            const available = window.spinrollStock?.[id === "exile" ? "website" : id];
+            if (!Number.isSafeInteger(available)) {
+                alert("Lagerstatus kunde inte kontrolleras.");
+                return;
+            }
+            if (nyttAntal > available) {
+                alert("Endast " + available + " exemplar finns i lager.");
+                return;
+            }
         }
         kundvagn[id] = Math.min(10, nyttAntal);
     }
